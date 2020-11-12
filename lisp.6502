@@ -1,0 +1,227 @@
+\ http://localhost:8081/?disc1=lisp.ssd&autoboot
+
+oswrch = &FFEE
+osasci = &FFE3
+osnewl = &FFE7
+ret = &70
+exp = &72
+
+ORG &2000
+
+.start
+
+    ; init free
+    LDA free
+    STA exp
+    LDA free + 1
+    STA exp + 1
+    LDX #7
+.init_free_loop
+    LDY #0
+    LDA #0
+    STA (exp), Y
+    LDY #1
+    STA (exp), Y
+
+    CLC
+
+    LDA #32
+    ADC free
+    LDY #2
+    STA (exp), Y
+    STA free
+
+    LDA #0
+    ADC free + 1
+    LDY #3
+    STA (exp), Y
+    STA free + 1
+
+    LDA free
+    STA exp
+    LDA free + 1
+    STA exp + 1
+
+    DEX
+    BNE init_free_loop
+
+    LDA #0
+    LDY #0
+    STA (exp), Y
+    LDY #1
+    STA (exp), Y
+    LDY #2
+    STA (exp), Y
+    LDY #3
+    STA (exp), Y
+
+    ; init stack
+    LDX #255
+
+    LDA #end MOD 256
+    STA exp
+    LDA #end DIV 256
+    STA exp + 1
+
+    JSR print
+    JSR osnewl
+
+    RTS
+
+.type_cons ; jump table?
+    EQUB 0
+.type_symbol
+    EQUB 2
+.type_number
+    EQUB 6
+.type_mask
+    EQUB &E
+.print
+    ; nil?
+    LDA #0
+    CMP exp
+    BNE print_checktype
+    CMP exp + 1
+    BNE print_checktype
+    LDA #'n'
+    JSR osasci
+    LDA #'i'
+    JSR osasci
+    LDA #'l'
+    JSR osasci
+    RTS
+
+.print_checktype
+    LDY #0
+    LDA (exp), Y
+    AND type_mask
+
+    ; cons?
+    CMP type_cons
+    BEQ print_cons
+
+    ; symbol?
+    CMP type_symbol
+    BNE print_notsymbol
+    LDY #1
+    LDA (exp), Y
+    JSR osasci
+    LDY #2
+    LDA (exp), Y
+    JSR osasci
+    LDY #3
+    LDA (exp), Y
+    JSR osasci
+    RTS
+
+.print_notsymbol
+    ; number?
+    CMP type_number
+    BNE print_cons
+    LDY #1
+    LDA (exp), Y
+    JSR print_byte
+    RTS
+
+.print_cons
+    LDA #'('
+    JSR osasci
+    LDA #0
+    PHA
+.print_loop
+    PLA
+    JSR osasci
+    LDA #' '
+    PHA
+
+    DEX ; push exp
+    LDA exp
+    STA stack_low, X
+    LDA exp + 1
+    STA stack_high, X
+
+    LDY #0 ; car
+    LDA (exp), Y
+    PHA
+    LDY #1
+    LDA (exp), Y
+    STA exp + 1
+    PLA
+    STA exp
+    JSR print
+
+    LDA stack_low, X ; pull exp
+    STA exp
+    LDA stack_high, X
+    STA exp + 1
+    INX
+
+    LDY #2 ; cdr
+    LDA (exp), Y
+    PHA
+    LDY #3
+    LDA (exp), Y
+    STA exp + 1
+    PLA
+    STA exp
+
+    ; nil?
+    LDA #0
+    CMP exp
+    BNE print_loop
+    CMP exp + 1
+    BNE print_loop
+.print_close
+    PLA
+    LDA #')'
+    JSR osasci
+    RTS
+
+.print_symbol
+
+
+.print_0
+    EQUB '0'
+    EQUB 15
+.print_byte
+    PHA
+    LSR A
+    LSR A
+    LSR A
+    LSR A
+    CLC
+    ADC print_0
+    JSR osasci
+    PLA
+    AND print_0 + 1
+    CLC
+    ADC print_0
+    JSR osasci
+    RTS
+
+.free_first
+    LDA free
+    STA ret
+    LDA free + 1
+    STA ret + 1
+
+    LDY #0
+    LDA (ret), Y
+    STA free
+    LDY #1
+    LDA (ret), Y
+    STA free + 1
+
+    RTS
+.free
+    EQUB end MOD 256, end DIV 256
+
+ALIGN &100
+.stack_low
+    SKIP 256
+ALIGN &100
+.stack_high
+    SKIP 256
+.end
+
+SAVE "Lisp", start, end

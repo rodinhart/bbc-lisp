@@ -1,0 +1,1 @@
+beebasm.exe -i ./lisp.6502 -do ../discs/lisp.ssd -boot Lisp -v
