@@ -1,5 +1,9 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
+;; refactor print with eval?
+;; macro for mov exp, ret etc?
+;; macro for push exp etc?
+
 oswrch = &FFEE
 osasci = &FFE3
 osnewl = &FFE7
@@ -64,13 +68,56 @@ ORG &2000
     LDX #255
 
     ; main
-    LDA free
+    LDA #code MOD 256
     STA exp
-    LDA free + 1
+    LDA #code DIV 256
+    STA exp + 1
+    JSR eval
+
+    LDA ret
+    STA exp
+    LDA ret + 1
     STA exp + 1
     JSR print
     JSR osnewl
 
+    RTS
+
+.code
+    EQUB 6, &42, 0, 0
+
+.eval
+    ; nil?
+    LDA #0
+    CMP exp
+    BNE eval_checktype
+    CMP exp + 1
+    BNE eval_checktype
+    LDA exp
+    STA ret
+    LDA exp + 1
+    STA ret + 1
+    RTS
+.temp
+    EQUB '0'
+.eval_checktype
+    LDY #0
+    LDA (exp), Y
+    AND type_mask
+
+    CMP type_number
+    BNE eval_unknown
+    
+    LDA exp
+    STA ret
+    LDA exp + 1
+    STA ret + 1
+    RTS
+
+.eval_unknown
+    LDA #0 ; fallback return nil
+    STA ret
+    STA ret + 1
     RTS
 
 .type_cons ; jump table?
