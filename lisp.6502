@@ -9,7 +9,6 @@ exp = &72
 ORG &2000
 
 .start
-
     ; init free
     LDA free
     STA exp
@@ -55,14 +54,20 @@ ORG &2000
     LDY #3
     STA (exp), Y
 
+    ; set free to first in chain
+    LDA #end MOD 256
+    STA free
+    LDA #end DIV 256
+    STA free + 1
+
     ; init stack
     LDX #255
 
-    LDA #end MOD 256
+    ; main
+    LDA free
     STA exp
-    LDA #end DIV 256
+    LDA free + 1
     STA exp + 1
-
     JSR print
     JSR osnewl
 
