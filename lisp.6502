@@ -1,8 +1,7 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
-;; refactor print with eval?
-;; macro for mov exp, ret etc?
-;; macro for push exp etc?
+;; macro for init cells?
+;; macro nil?
 
 oswrch = &FFEE
 osasci = &FFE3
@@ -12,14 +11,59 @@ exp = &72
 env = &74
 tmp = &76
 
+MACRO ADDR target, address
+    LDA #LO(address)
+    STA target
+    LDA #HI(address)
+    STA target + 1
+ENDMACRO
+
+MACRO HEAD target, pair
+    LDY #0
+    LDA (pair), Y
+    STA target
+    INY
+    LDA (pair), Y
+    STA target + 1
+ENDMACRO
+
+MACRO MOVE target, source
+    LDA source
+    STA target
+    LDA source + 1
+    STA target + 1
+ENDMACRO
+
+MACRO PULL reg
+    LDA stack_low, X
+    STA exp
+    LDA stack_high, X
+    STA exp + 1
+    INX
+ENDMACRO
+
+MACRO PUSH reg
+    DEX
+    LDA reg
+    STA stack_low, X
+    LDA reg + 1
+    STA stack_high, X
+ENDMACRO
+
+MACRO TAIL target, pair
+    LDY #2
+    LDA (pair), Y
+    STA target
+    INY
+    LDA (pair), Y
+    STA target + 1
+ENDMACRO
+
 ORG &2000
 
 .start
     ; init free
-    LDA free
-    STA exp
-    LDA free + 1
-    STA exp + 1
+    MOVE exp, free
     LDX #7
 .init_free_loop
     LDY #0
@@ -42,10 +86,7 @@ ORG &2000
     STA (exp), Y
     STA free + 1
 
-    LDA free
-    STA exp
-    LDA free + 1
-    STA exp + 1
+    MOVE exp, free
 
     DEX
     BNE init_free_loop
@@ -61,35 +102,23 @@ ORG &2000
     STA (exp), Y
 
     ; set free to first in chain
-    LDA #LO(end)
-    STA free
-    LDA #HI(end)
-    STA free + 1
+    ADDR free, end
 
     ; init stack
     LDX #255
 
     ; main
-    LDA #code MOD 256
-    STA exp
-    LDA #code DIV 256
-    STA exp + 1
-    
-    LDA #core MOD 256
-    STA env
-    LDA #core DIV 256
-    STA env + 1
+    ADDR exp, code
+    ADDR env, core
     JSR eval
 
-    LDA ret
-    STA exp
-    LDA ret + 1
-    STA exp + 1
+    MOVE exp, ret
     JSR print
     JSR osnewl
 
     RTS
 
+ALIGN 4
 .code
     EQUB 2, '+', 0, 0
 
@@ -105,11 +134,9 @@ ORG &2000
     EQUW 3
 
 .native_plus ; ret = sum(exp)
-    LDA #hard MOD 256
-    STA ret
-    LDA #hard DIV 256
-    STA ret + 1
+    ADDR ret, hard
     RTS
+ALIGN 4
 .hard
     EQUB 6, &43, 0, 0
 
@@ -140,54 +167,32 @@ ORG &2000
 
 .eval_nil
 .eval_number
-    LDA exp
-    STA ret
-    LDA exp + 1
-    STA ret + 1
+    MOVE ret, exp
     RTS
 
 .eval_symbol
-    LDY #0 ; tmp = car env
-    LDA (env), Y
-    STA tmp
-    LDY #1
-    LDA (env), Y
-    STA tmp + 1
+    HEAD tmp, env
 
     LDY #1
     LDA (tmp), Y
     CMP (exp), Y
     BNE eval_symbol_next
+;    INY
+;    LDA (tmp), Y
+;    CMP (exp), Y
+;    BNE eval_symbol_next
+;    INY
+;    LDA (tmp), Y
+;    CMP (exp), Y
+;    BNE eval_symbol_next
 
-    LDY #2 ; tmp = cdr env
-    LDA (env), Y
-    STA tmp
-    LDY #3
-    LDA (env), Y
-    STA tmp + 1
-
-    LDY #0 ; ret = car tmp
-    LDA (tmp), Y
-    STA ret
-    LDY #1
-    LDA (tmp), Y
-    STA ret + 1
+    TAIL tmp, env
+    HEAD ret, tmp
     RTS
 
 .eval_symbol_next
-    LDY #2 ; ret = cdr env
-    LDA (env), Y
-    STA ret
-    LDY #3
-    LDA (env), Y
-    STA ret + 1
-
-    LDY #2 ; env = cdr ret
-    LDA (ret), Y
-    STA env
-    LDY #3
-    LDA (ret), Y
-    STA env + 1
+    TAIL tmp, env
+    TAIL env, tmp
 
     LDA #0
     CMP env
@@ -259,14 +264,6 @@ ORG &2000
 .get_type_primbase
     EQUB 5
 
-.type_cons ; jump table?
-    EQUB 0
-.type_symbol
-    EQUB 2
-.type_number
-    EQUB 6
-.type_mask
-    EQUB &E
 .print
     JSR get_type
     TAY
@@ -312,13 +309,9 @@ ORG &2000
     LDA #' '
     PHA
 
-    DEX ; push exp
-    LDA exp
-    STA stack_low, X
-    LDA exp + 1
-    STA stack_high, X
+    PUSH exp
 
-    LDY #0 ; car
+    LDY #0 ; exp = car(exp)
     LDA (exp), Y
     PHA
     LDY #1
@@ -328,13 +321,9 @@ ORG &2000
     STA exp
     JSR print
 
-    LDA stack_low, X ; pull exp
-    STA exp
-    LDA stack_high, X
-    STA exp + 1
-    INX
+    PULL exp
 
-    LDY #2 ; cdr
+    LDY #2 ; exp = cdr(exp)
     LDA (exp), Y
     PHA
     LDY #3
