@@ -149,21 +149,21 @@ ALIGN 4
     PHA
     RTS
 .eval_jumplow
-    EQUB (eval_nil - 1) MOD 256
-    EQUB (eval_cons - 1) MOD 256
-    EQUB (eval_nil - 1) MOD 256
-    EQUB (eval_nil - 1) MOD 256
-    EQUB (eval_nil - 1) MOD 256
-    EQUB (eval_symbol - 1) MOD 256
-    EQUB (eval_number - 1) MOD 256
+    EQUB LO(eval_nil - 1)
+    EQUB LO(eval_cons - 1)
+    EQUB LO(eval_nil - 1)
+    EQUB LO(eval_nil - 1)
+    EQUB LO(eval_nil - 1)
+    EQUB LO(eval_symbol - 1)
+    EQUB LO(eval_number - 1)
 .eval_jumphigh
-    EQUB (eval_nil - 1) DIV 256
-    EQUB (eval_cons - 1) DIV 256
-    EQUB (eval_nil - 1) DIV 256
-    EQUB (eval_nil - 1) DIV 256
-    EQUB (eval_nil - 1) DIV 256
-    EQUB (eval_symbol - 1) DIV 256
-    EQUB (eval_number - 1) DIV 256
+    EQUB HI(eval_nil - 1)
+    EQUB HI(eval_cons - 1)
+    EQUB HI(eval_nil - 1)
+    EQUB HI(eval_nil - 1)
+    EQUB HI(eval_nil - 1)
+    EQUB HI(eval_symbol - 1)
+    EQUB HI(eval_number - 1)
 
 .eval_nil
 .eval_number
@@ -177,14 +177,14 @@ ALIGN 4
     LDA (tmp), Y
     CMP (exp), Y
     BNE eval_symbol_next
-;    INY
-;    LDA (tmp), Y
-;    CMP (exp), Y
-;    BNE eval_symbol_next
-;    INY
-;    LDA (tmp), Y
-;    CMP (exp), Y
-;    BNE eval_symbol_next
+    ;INY
+    ;LDA (tmp), Y
+    ;CMP (exp), Y
+    ;BNE eval_symbol_next
+    ;INY
+    ;LDA (tmp), Y
+    ;CMP (exp), Y
+    ;BNE eval_symbol_next
 
     TAIL tmp, env
     HEAD ret, tmp
@@ -242,25 +242,23 @@ ALIGN 4
     BNE get_type_notcons
     LDY #2
     LDA (exp), Y
-    AND get_type_consmask
+    AND get_type_mask
     CLC
     ADC get_type_consbase
     RTS ; return 1 = Cons, 2 = Proc, 3 = Macro, 4 = Native
 .get_type_notcons
-    AND get_type_primmask
     LSR A
     LSR A
+    AND get_type_mask
     CLC
     ADC get_type_primbase
     RTS ; return 5 = Symbol, 6 = Number
 .get_type_testcons
     EQUB 2
-.get_type_consmask
+.get_type_mask
     EQUB 3
 .get_type_consbase
     EQUB 1
-.get_type_primmask
-    EQUB 12
 .get_type_primbase
     EQUB 5
 
@@ -273,21 +271,21 @@ ALIGN 4
     PHA
     RTS
 .print_jumplow
-    EQUB (print_nil - 1) MOD 256
-    EQUB (print_cons - 1) MOD 256
-    EQUB (print_nil - 1) MOD 256
-    EQUB (print_nil - 1) MOD 256
-    EQUB (print_native - 1) MOD 256
-    EQUB (print_symbol - 1) MOD 256
-    EQUB (print_number - 1) MOD 256
+    EQUB LO(print_nil - 1)
+    EQUB LO(print_cons - 1)
+    EQUB LO(print_nil - 1)
+    EQUB LO(print_nil - 1)
+    EQUB LO(print_native - 1)
+    EQUB LO(print_symbol - 1)
+    EQUB LO(print_number - 1)
 .print_jumphigh
-    EQUB (print_nil - 1) DIV 256
-    EQUB (print_cons - 1) DIV 256
-    EQUB (print_nil - 1) DIV 256
-    EQUB (print_nil - 1) DIV 256
-    EQUB (print_nil - 1) DIV 256
-    EQUB (print_symbol - 1) DIV 256
-    EQUB (print_number - 1) DIV 256
+    EQUB HI(print_nil - 1)
+    EQUB HI(print_cons - 1)
+    EQUB HI(print_nil - 1)
+    EQUB HI(print_nil - 1)
+    EQUB HI(print_nil - 1)
+    EQUB HI(print_symbol - 1)
+    EQUB HI(print_number - 1)
 
 .print_nil
     LDA #'n'
