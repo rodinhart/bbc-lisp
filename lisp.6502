@@ -61,9 +61,9 @@ ORG &2000
     STA (exp), Y
 
     ; set free to first in chain
-    LDA #end MOD 256
+    LDA #LO(end)
     STA free
-    LDA #end DIV 256
+    LDA #HI(end)
     STA free + 1
 
     ; init stack
@@ -91,17 +91,27 @@ ORG &2000
     RTS
 
 .code
-    EQUB 2, 'f', 'n', 0
+    EQUB 2, '+', 0, 0
 
 .core
-    EQUW core_x
+    EQUW core_plus
     EQUW core + 4
-    EQUW core_42
+    EQUW core_plus_
     EQUW 0
-.core_x
-    EQUB 2, 'f', 'n', 0
-.core_42
-    EQUB 6, &42, 0, 0
+.core_plus
+    EQUB 2, '+', 0, 0
+.core_plus_
+    EQUW native_plus
+    EQUW 3
+
+.native_plus ; ret = sum(exp)
+    LDA #hard MOD 256
+    STA ret
+    LDA #hard DIV 256
+    STA ret + 1
+    RTS
+.hard
+    EQUB 6, &43, 0, 0
 
 .eval
     JSR get_type
@@ -270,7 +280,7 @@ ORG &2000
     EQUB (print_cons - 1) MOD 256
     EQUB (print_nil - 1) MOD 256
     EQUB (print_nil - 1) MOD 256
-    EQUB (print_nil - 1) MOD 256
+    EQUB (print_native - 1) MOD 256
     EQUB (print_symbol - 1) MOD 256
     EQUB (print_number - 1) MOD 256
 .print_jumphigh
@@ -342,6 +352,19 @@ ORG &2000
 .print_close
     PLA
     LDA #')'
+    JSR osasci
+    RTS
+
+.print_native
+    LDA #'['
+    JSR osasci
+    LDA #'N'
+    JSR osasci
+    LDA #'A'
+    JSR osasci
+    LDA #'T'
+    JSR osasci
+    LDA #']'
     JSR osasci
     RTS
 
