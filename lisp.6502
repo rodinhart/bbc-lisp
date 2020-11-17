@@ -108,15 +108,21 @@ ORG &2000
     LDX #255
 
     ; main
-    ADDR exp, code
-    ADDR env, core
-    JSR eval
+    ;ADDR exp, code
+    ;ADDR env, core
+    ;JSR eval
+
+    ADDR exp, source
+    JSR read
 
     MOVE exp, ret
     JSR print
     JSR osnewl
 
     RTS
+
+.source
+    EQUB "  42 ", 0
 
 ALIGN 4
 .code
@@ -394,21 +400,94 @@ ALIGN 4
     RTS
 
 .free_first
-    LDA free
-    STA ret
-    LDA free + 1
-    STA ret + 1
+    MOVE ret, free
 
-    LDY #0
+    LDY #2 ; (free) = cdr(ret)
     LDA (ret), Y
     STA free
-    LDY #1
+    LDY #3
     LDA (ret), Y
     STA free + 1
 
     RTS
 .free
     EQUB end MOD 256, end DIV 256
+
+.read
+    LDY #0
+.readToken
+    JSR readWS
+    LDA (exp), Y
+    CMP #'0'
+    BCC readToken_notnumber
+    CMP #':'
+    BCS readToken_notnumber
+
+    LDA #0 ; clear buffer
+    STA readNumber_buffer
+    STA readNumber_buffer + 1
+    STA readNumber_buffer + 2
+.readNumber_loop
+    LDA readNumber_buffer
+    ASL A
+    ASL A
+    ASL A
+    ASL A
+    STA readNumber_buffer
+    LDA (exp), Y
+    SEC
+    SBC print_0
+    ORA readNumber_buffer
+    STA readNumber_buffer
+
+    INY
+    LDA (exp), Y
+    CMP #'0'
+    BCC readNumber_end
+    CMP #':'
+    BCC readNumber_loop
+.readNumber_end
+    TYA
+    PHA
+    JSR free_first
+    LDA #6 ; refactor create_number
+    LDY #0
+    STA (ret), Y
+    LDA readNumber_buffer
+    LDY #1
+    STA (ret), Y
+    LDA readNumber_buffer + 1
+    LDY #2
+    STA (ret), Y
+    LDA readNumber_buffer + 2
+    LDY #3
+    STA (ret), Y
+    PLA
+    TAY
+    RTS
+
+.readNumber_buffer
+    EQUB 0, 0, 0
+
+.readToken_notnumber
+    LDA #0
+    STA ret
+    STA ret + 1
+    RTS
+
+.readWS
+    LDA (exp), Y
+    CMP #33
+    BCS readWS_end
+    INY
+    BCC readWS
+.readWS_end
+    CMP #0
+    BEQ readWS_endoffile
+    RTS
+.readWS_endoffile
+    BRK
+    EQUB 0, "Unexpected end of file", 0
 
 ALIGN &100
 .stack_low
