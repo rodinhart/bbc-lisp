@@ -141,7 +141,7 @@ ORG &2000
     RTS
 
 .source
-    EQUB " (2 3 5)", 0
+    EQUB "(def x 42)", 0
 
 ALIGN 4
 .code
@@ -497,9 +497,37 @@ ALIGN 4
     EQUB 0, 0, 0
 
 .readToken_notnumber
-    LDA #0
-    STA ret
-    STA ret + 1
+    JSR free_first
+    LDA #2
+    LDY #0
+    STA (ret), Y
+
+    ; read first char
+    LDY read_cursor
+    LDA (exp), Y
+    LDY #1
+    STA (ret), Y
+    INC read_cursor
+
+    ; read second char
+    LDY read_cursor 
+    LDA (exp), Y
+    CMP #33
+    BCC readSymbol_end
+    LDY #2
+    STA (ret), Y
+    INC read_cursor
+
+    ; read third char
+    LDY read_cursor 
+    LDA (exp), Y
+    CMP #33
+    BCC readSymbol_end
+    LDY #3
+    STA (ret), Y
+    INC read_cursor
+
+.readSymbol_end
     RTS
 
 .readWS
