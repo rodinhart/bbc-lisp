@@ -36,9 +36,9 @@ ENDMACRO
 
 MACRO PULL reg
     LDA stack_low, X
-    STA exp
+    STA reg
     LDA stack_high, X
-    STA exp + 1
+    STA reg + 1
     INX
 ENDMACRO
 
@@ -122,7 +122,7 @@ ORG &2000
     RTS
 
 .source
-    EQUB "  42 ", 0
+    EQUB " (2 3 5)", 0
 
 ALIGN 4
 .code
@@ -413,11 +413,15 @@ ALIGN 4
 .free
     EQUB end MOD 256, end DIV 256
 
+.readList_proxy
+    JMP readList
 .read
     LDY #0
 .readToken
     JSR readWS
     LDA (exp), Y
+    CMP #'('
+    BEQ readList_proxy
     CMP #'0'
     BCC readToken_notnumber
     CMP #':'
@@ -488,6 +492,39 @@ ALIGN 4
 .readWS_endoffile
     BRK
     EQUB 0, "Unexpected end of file", 0
+
+.readList
+    INY ; skip '('
+    JSR free_first
+    TYA
+    PHA
+    LDA #0
+    LDY #2
+    STA (ret), Y
+    LDY #3
+    STA (ret), Y
+    PLA
+    TAY
+    PUSH ret
+.readList_loop
+    JSR readWS
+    LDA (exp), Y
+    CMP #')'
+    BEQ readList_end
+.readList_end
+    INY ; skip ')'
+    PULL tmp
+    TYA
+    PHA
+    LDY #2
+    LDA (tmp), Y
+    STA ret
+    LDY #3
+    LDA (tmp), Y
+    STA ret + 1
+    PLA
+    TAY
+    RTS
 
 ALIGN &100
 .stack_low
