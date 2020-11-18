@@ -1,8 +1,10 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
+;; print decimal
 ;; macro for init cells?
 ;; macro nil?
 ;; macro setcar/setcdr
+;; native doesn't have to be cell aligned
 
 oswrch = &FFEE
 osasci = &FFE3
@@ -83,7 +85,7 @@ ORG &2000
 .start
     ; init free
     MOVE exp, free
-    LDX #7
+    LDX #127
 .init_free_loop
     LDY #0
     LDA #0
@@ -123,6 +125,8 @@ ORG &2000
     ; set free to first in chain
     ADDR free, end
 
+    JSR printFree
+
     ; init stack
     LDX #255
 
@@ -138,10 +142,12 @@ ORG &2000
     JSR print
     JSR osnewl
 
+    JSR printFree
+
     RTS
 
 .source
-    EQUB "(def x 42)", 0
+    EQUB "(def (fn (x) (* x x)))", 0
 
 ALIGN 4
 .code
@@ -161,6 +167,26 @@ ALIGN 4
 .native_plus ; ret = sum(exp)
     ADDR ret, hard
     RTS
+
+ALIGN 4
+.native_len ; A = len(exp)
+    LDA #0
+    STA native_len_count
+.native_len_loop
+    LDA #0
+    CMP exp
+    BNE native_len_next
+    CMP exp + 1
+    BNE native_len_next
+    LDA native_len_count
+    RTS
+.native_len_next
+    INC native_len_count
+    TAIL tmp, exp
+    MOVE exp, tmp
+    JMP native_len_loop
+.native_len_count
+
 ALIGN 4
 .hard
     EQUB 6, &43, 0, 0
@@ -419,6 +445,12 @@ ALIGN 4
     RTS
 
 .free_first
+    LDA #0
+    CMP free
+    BNE free_first_notnil
+    CMP free + 1
+    BEQ free_outofmemory
+.free_first_notnil
     MOVE ret, free
     TAIL free, ret
     LDA #0
@@ -431,8 +463,27 @@ ALIGN 4
     LDY #3
     STA (ret), Y
     RTS
+.free_outofmemory
+    BRK
+    EQUB 0, "Out of memory", 0
 .free
-    EQUB end MOD 256, end DIV 256
+    EQUB LO(end), HI(end)
+.printFree
+    LDA #'F'
+    JSR osasci
+    LDA #'r'
+    JSR osasci
+    LDA #'e'
+    JSR osasci
+    LDA #'e'
+    JSR osasci
+    LDA #' '
+    JSR osasci
+    MOVE exp, free
+    JSR native_len
+    JSR print_byte
+    JSR osnewl
+    RTS
 
 .readList_proxy
     JMP readList
@@ -514,6 +565,8 @@ ALIGN 4
     LDA (exp), Y
     CMP #33
     BCC readSymbol_end
+    CMP #')'
+    BEQ readSymbol_end
     LDY #2
     STA (ret), Y
     INC read_cursor
@@ -523,6 +576,8 @@ ALIGN 4
     LDA (exp), Y
     CMP #33
     BCC readSymbol_end
+    CMP #')'
+    BEQ readSymbol_end
     LDY #3
     STA (ret), Y
     INC read_cursor
