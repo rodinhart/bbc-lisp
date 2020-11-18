@@ -2,6 +2,7 @@
 
 ;; macro for init cells?
 ;; macro nil?
+;; macro setcar/setcdr
 
 oswrch = &FFEE
 osasci = &FFE3
@@ -25,6 +26,15 @@ MACRO HEAD target, pair
     INY
     LDA (pair), Y
     STA target + 1
+ENDMACRO
+
+MACRO HEADSET pair, reg
+    LDA reg
+    LDY #0
+    STA (pair), Y
+    LDA reg + 1
+    LDY #1
+    STA (pair), Y
 ENDMACRO
 
 MACRO MOVE target, source
@@ -54,9 +64,18 @@ MACRO TAIL target, pair
     LDY #2
     LDA (pair), Y
     STA target
-    INY
+    LDY #3
     LDA (pair), Y
     STA target + 1
+ENDMACRO
+
+MACRO TAILSET pair, reg
+    LDA reg
+    LDY #2
+    STA (pair), Y
+    LDA reg + 1
+    LDY #3
+    STA (pair), Y
 ENDMACRO
 
 ORG &2000
@@ -401,24 +420,30 @@ ALIGN 4
 
 .free_first
     MOVE ret, free
-
-    LDY #2 ; (free) = cdr(ret)
-    LDA (ret), Y
-    STA free
+    TAIL free, ret
+    LDA #0
+    LDY #0
+    STA (ret), Y
+    LDY #1
+    STA (ret), Y
+    LDY #2
+    STA (ret), Y
     LDY #3
-    LDA (ret), Y
-    STA free + 1
-
+    STA (ret), Y
     RTS
 .free
     EQUB end MOD 256, end DIV 256
 
 .readList_proxy
     JMP readList
+.read_cursor
+    EQUB 0
 .read
     LDY #0
+    STY read_cursor
 .readToken
     JSR readWS
+    LDY read_cursor
     LDA (exp), Y
     CMP #'('
     BEQ readList_proxy
@@ -438,21 +463,21 @@ ALIGN 4
     ASL A
     ASL A
     STA readNumber_buffer
+    LDY read_cursor
     LDA (exp), Y
     SEC
     SBC print_0
     ORA readNumber_buffer
     STA readNumber_buffer
 
-    INY
+    INC read_cursor
+    LDY read_cursor
     LDA (exp), Y
     CMP #'0'
     BCC readNumber_end
     CMP #':'
     BCC readNumber_loop
 .readNumber_end
-    TYA
-    PHA
     JSR free_first
     LDA #6 ; refactor create_number
     LDY #0
@@ -466,8 +491,6 @@ ALIGN 4
     LDA readNumber_buffer + 2
     LDY #3
     STA (ret), Y
-    PLA
-    TAY
     RTS
 
 .readNumber_buffer
@@ -480,10 +503,11 @@ ALIGN 4
     RTS
 
 .readWS
+    LDY read_cursor
     LDA (exp), Y
     CMP #33
     BCS readWS_end
-    INY
+    INC read_cursor
     BCC readWS
 .readWS_end
     CMP #0
@@ -494,36 +518,35 @@ ALIGN 4
     EQUB 0, "Unexpected end of file", 0
 
 .readList
-    INY ; skip '('
+    INC read_cursor ; skip '('
     JSR free_first
-    TYA
-    PHA
-    LDA #0
-    LDY #2
-    STA (ret), Y
-    LDY #3
-    STA (ret), Y
-    PLA
-    TAY
     PUSH ret
 .readList_loop
     JSR readWS
+    LDY read_cursor
     LDA (exp), Y
     CMP #')'
     BEQ readList_end
+
+    PUSH ret
+    JSR readToken
+    MOVE tmp, ret
+    JSR free_first
+    HEADSET ret, tmp
+    MOVE tmp, ret
+    PULL ret
+    TAILSET ret, tmp
+    MOVE ret, tmp
+    JMP readList_loop
 .readList_end
-    INY ; skip ')'
+    INC read_cursor ; skip ')'
     PULL tmp
-    TYA
-    PHA
     LDY #2
     LDA (tmp), Y
     STA ret
     LDY #3
     LDA (tmp), Y
     STA ret + 1
-    PLA
-    TAY
     RTS
 
 ALIGN &100
