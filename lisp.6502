@@ -1,6 +1,7 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
-;; print decimal
+;; print string
+;; make all label verbNoun_sublabel
 ;; macro for init cells?
 ;; macro nil?
 ;; macro setcar/setcdr
@@ -47,19 +48,19 @@ MACRO MOVE target, source
 ENDMACRO
 
 MACRO PULL reg
+    DEX
     LDA stack_low, X
     STA reg
     LDA stack_high, X
     STA reg + 1
-    INX
 ENDMACRO
 
 MACRO PUSH reg
-    DEX
     LDA reg
     STA stack_low, X
     LDA reg + 1
     STA stack_high, X
+    INX
 ENDMACRO
 
 MACRO TAIL target, pair
@@ -125,10 +126,10 @@ ORG &2000
     ; set free to first in chain
     ADDR free, end
 
-    JSR printFree
-
     ; init stack
-    LDX #255
+    LDX #0
+
+    JSR printFree
 
     ; main
     ;ADDR exp, code
@@ -444,6 +445,43 @@ ALIGN 4
     JSR osasci
     RTS
 
+.printDecimal_buffer
+    EQUS "   "
+.printDecimal ; print A
+    LDY #0
+    STY printDecimal_buffer
+    STY printDecimal_buffer + 1
+    STY printDecimal_buffer + 2
+.printDecimal_loop
+    CMP #10
+    BCC printDecimal_next
+    SBC #10
+    INY
+    JMP printDecimal_loop
+.printDecimal_next
+    PHA
+    LDA printDecimal_buffer + 1
+    STA printDecimal_buffer + 2
+    LDA printDecimal_buffer
+    STA printDecimal_buffer + 1
+    PLA
+    CLC
+    ADC print_0
+    STA printDecimal_buffer
+    TYA
+    LDY #0
+
+    CMP #0
+    BNE printDecimal_loop
+.printDecimal_print
+    LDA printDecimal_buffer
+    JSR osasci
+    LDA printDecimal_buffer + 1
+    JSR osasci
+    LDA printDecimal_buffer + 2
+    JSR osasci
+    RTS
+
 .free_first
     LDA #0
     CMP free
@@ -481,7 +519,15 @@ ALIGN 4
     JSR osasci
     MOVE exp, free
     JSR native_len
-    JSR print_byte
+    JSR printDecimal
+
+    LDA #',' ; print stack
+    JSR osasci
+    LDA #' '
+    JSR osasci
+    TXA
+    JSR printDecimal
+
     JSR osnewl
     RTS
 
