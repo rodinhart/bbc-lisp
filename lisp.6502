@@ -15,20 +15,20 @@ exp = &72
 env = &74
 tmp = &76
 
-MACRO ADDR target, address
+MACRO ADDR reg, address
     LDA #LO(address)
-    STA target
+    STA reg
     LDA #HI(address)
-    STA target + 1
+    STA reg + 1
 ENDMACRO
 
-MACRO HEAD target, pair
+MACRO HEAD reg, pair
     LDY #0
     LDA (pair), Y
-    STA target
+    STA reg
     INY
     LDA (pair), Y
-    STA target + 1
+    STA reg + 1
 ENDMACRO
 
 MACRO HEADSET pair, reg
@@ -63,13 +63,13 @@ MACRO PUSH reg
     INX
 ENDMACRO
 
-MACRO TAIL target, pair
+MACRO TAIL reg, pair
     LDY #2
     LDA (pair), Y
-    STA target
+    STA reg
     LDY #3
     LDA (pair), Y
-    STA target + 1
+    STA reg + 1
 ENDMACRO
 
 MACRO TAILSET pair, reg
@@ -84,57 +84,9 @@ ENDMACRO
 ORG &2000
 
 .start
-    ; init free
-    MOVE exp, free
-    LDX #127
-.init_free_loop
-    LDY #0
-    LDA #0
-    STA (exp), Y
-    LDY #1
-    STA (exp), Y
-
-    CLC
-
-    LDA #32
-    ADC free
-    LDY #2
-    STA (exp), Y
-    STA free
-
-    LDA #0
-    ADC free + 1
-    LDY #3
-    STA (exp), Y
-    STA free + 1
-
-    MOVE exp, free
-
-    DEX
-    BNE init_free_loop
-
-    LDA #0
-    LDY #0
-    STA (exp), Y
-    LDY #1
-    STA (exp), Y
-    LDY #2
-    STA (exp), Y
-    LDY #3
-    STA (exp), Y
-
-    ; set free to first in chain
-    ADDR free, end
-
-    ; init stack
-    LDX #0
-
-    JSR printFree
-
-    ; main
-    ;ADDR exp, code
-    ;ADDR env, core
-    ;JSR eval
+    JSR freeInit
+    LDX #0 ; init stack
+    JSR freeReport
 
     ADDR exp, source
     JSR read
@@ -143,7 +95,15 @@ ORG &2000
     JSR print
     JSR osnewl
 
-    JSR printFree
+    PUSH exp
+
+    JSR freeReport
+    JSR freeGC
+    JSR freeReport
+
+    PULL exp
+    JSR print
+    JSR osnewl
 
     RTS
 
@@ -151,9 +111,6 @@ ORG &2000
     EQUB "(def (fn (x) (* x x)))", 0
 
 ALIGN 4
-.code
-    EQUB 2, '+', 0, 0
-
 .core
     EQUW core_plus
     EQUW core + 4
@@ -165,11 +122,12 @@ ALIGN 4
     EQUW native_plus
     EQUW 3
 
+.hard
+    EQUB 6, &43, 0, 0
 .native_plus ; ret = sum(exp)
     ADDR ret, hard
     RTS
 
-ALIGN 4
 .native_len ; A = len(exp)
     LDA #0
     STA native_len_count
@@ -187,10 +145,6 @@ ALIGN 4
     MOVE exp, tmp
     JMP native_len_loop
 .native_len_count
-
-ALIGN 4
-.hard
-    EQUB 6, &43, 0, 0
 
 .eval
     JSR get_type
@@ -422,14 +376,14 @@ ALIGN 4
 .print_number
     LDY #1
     LDA (exp), Y
-    JSR print_byte
+    JSR printDecimal
     RTS
 
 
 .print_0
     EQUB '0'
     EQUB 15
-.print_byte
+.printByte
     PHA
     LSR A
     LSR A
@@ -482,13 +436,18 @@ ALIGN 4
     JSR osasci
     RTS
 
-.free_first
+.free
+    EQUB LO(end), HI(end)
+.freeHeapSize
+    EQUB 128
+
+.freeAlloc
     LDA #0
     CMP free
-    BNE free_first_notnil
+    BNE freeAlloc_notnil
     CMP free + 1
     BEQ free_outofmemory
-.free_first_notnil
+.freeAlloc_notnil
     MOVE ret, free
     TAIL free, ret
     LDA #0
@@ -504,9 +463,52 @@ ALIGN 4
 .free_outofmemory
     BRK
     EQUB 0, "Out of memory", 0
-.free
-    EQUB LO(end), HI(end)
-.printFree
+
+.freeCollect
+    TXA
+    PHA
+    LDA #0
+    STA free
+    STA free + 1
+    ADDR tmp, end
+    LDX freeHeapSize
+.freeCollect_loop
+    TAILSET tmp, free
+    MOVE free, tmp
+    LDA #32
+    CLC
+    ADC tmp
+    STA tmp
+    LDA #0
+    ADC tmp + 1
+    STA tmp + 1
+    DEX
+    BNE freeCollect_loop
+    PLA
+    TXA
+    RTS
+
+.freeInit
+    ADDR tmp, end
+    LDY #0
+    LDX freeHeapSize
+.freeInit_loop
+    LDA #0 ; clear marked
+    STA (tmp), Y
+    LDA #32
+    CLC
+    ADC tmp
+    STA tmp
+    LDA #0
+    ADC tmp + 1
+    STA tmp + 1
+    DEX
+    BNE freeInit_loop
+
+    JSR freeCollect
+    RTS
+
+.freeReport
     LDA #'F'
     JSR osasci
     LDA #'r'
@@ -575,7 +577,7 @@ ALIGN 4
     CMP #':'
     BCC readNumber_loop
 .readNumber_end
-    JSR free_first
+    JSR freeAlloc
     LDA #6 ; refactor create_number
     LDY #0
     STA (ret), Y
@@ -594,7 +596,7 @@ ALIGN 4
     EQUB 0, 0, 0
 
 .readToken_notnumber
-    JSR free_first
+    JSR freeAlloc
     LDA #2
     LDY #0
     STA (ret), Y
@@ -648,7 +650,7 @@ ALIGN 4
 
 .readList
     INC read_cursor ; skip '('
-    JSR free_first
+    JSR freeAlloc
     PUSH ret
 .readList_loop
     JSR readWS
@@ -660,7 +662,7 @@ ALIGN 4
     PUSH ret
     JSR readToken
     MOVE tmp, ret
-    JSR free_first
+    JSR freeAlloc
     HEADSET ret, tmp
     MOVE tmp, ret
     PULL ret
