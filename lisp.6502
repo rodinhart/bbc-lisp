@@ -90,12 +90,11 @@ ORG &2000
 
     ADDR exp, source
     JSR read
+    PUSH ret
 
     MOVE exp, ret
     JSR print
     JSR osnewl
-
-    PUSH exp
 
     JSR freeReport
     JSR freeGC
@@ -147,7 +146,7 @@ ALIGN 4
 .native_len_count
 
 .eval
-    JSR get_type
+    JSR getType
     TAY
     LDA eval_jumphigh, Y
     PHA
@@ -233,43 +232,43 @@ ALIGN 4
     RTS
 
 
-.get_type ; exp => A
+.getType ; exp => A
     ; nil?
     LDA #0
     CMP exp
-    BNE get_type_notnil
+    BNE getType_notnil
     CMP exp + 1
-    BNE get_type_notnil
+    BNE getType_notnil
     RTS ; return 0
-.get_type_notnil
+.getType_notnil
     LDY #0
     LDA (exp), Y
-    BIT get_type_testcons
-    BNE get_type_notcons
+    BIT getType_testcons
+    BNE getType_notcons
     LDY #2
     LDA (exp), Y
-    AND get_type_mask
+    AND getType_mask
     CLC
-    ADC get_type_consbase
+    ADC getType_consbase
     RTS ; return 1 = Cons, 2 = Proc, 3 = Macro, 4 = Native
-.get_type_notcons
+.getType_notcons
     LSR A
     LSR A
-    AND get_type_mask
+    AND getType_mask
     CLC
-    ADC get_type_primbase
+    ADC getType_primbase
     RTS ; return 5 = Symbol, 6 = Number
-.get_type_testcons
+.getType_testcons
     EQUB 2
-.get_type_mask
+.getType_mask
     EQUB 3
-.get_type_consbase
+.getType_consbase
     EQUB 1
-.get_type_primbase
+.getType_primbase
     EQUB 5
 
 .print
-    JSR get_type
+    JSR getType
     TAY
     LDA print_jumphigh, Y
     PHA
@@ -389,7 +388,11 @@ ALIGN 4
     LSR A
     LSR A
     LSR A
+    CMP #10
+    BCC printByte_dec
     CLC
+    ADC #6
+.printByte_dec
     ADC print_0
     JSR osasci
     PLA
@@ -473,8 +476,14 @@ ALIGN 4
     ADDR tmp, end
     LDX freeHeapSize
 .freeCollect_loop
+    LDY #0
+    LDA (tmp), Y
+    BIT freeMark_mask
+    BNE freeCollect_skip
+
     TAILSET tmp, free
     MOVE free, tmp
+.freeCollect_next
     LDA #32
     CLC
     ADC tmp
@@ -485,8 +494,31 @@ ALIGN 4
     DEX
     BNE freeCollect_loop
     PLA
-    TXA
+    TAX
     RTS
+.freeCollect_skip
+    AND #&FE ; clear mark
+    STA (tmp), Y
+    JMP freeCollect_next
+
+.freeGC_sp
+    EQUB 0
+.freeGC
+    STX freeGC_sp
+.freeGC_loop
+    LDY freeGC_sp
+    BEQ freeGC_end
+    DEY
+    STY freeGC_sp
+    LDA stack_low, Y
+    STA exp
+    LDA stack_high, Y
+    STA exp + 1
+    JSR freeMark
+    JMP freeGC_loop
+.freeGC_end
+    JMP freeCollect
+
 
 .freeInit
     ADDR tmp, end
@@ -507,6 +539,67 @@ ALIGN 4
 
     JSR freeCollect
     RTS
+
+.freeMark_mask
+    EQUB 1
+.freeMark
+    LDA #0
+    CMP exp
+    BNE freeMark_notnil
+    CMP exp + 1
+    BNE freeMark_notnil
+    RTS
+.freeMark_notnil
+    LDY #0
+    LDA (exp), Y
+    BIT freeMark_mask
+    BNE freeMark_done
+
+    JSR getType
+    TAY
+    LDA freeMark_jumphigh, Y
+    PHA
+    LDA freeMark_jumplow, Y
+    PHA
+.freeMark_done
+    RTS
+.freeMark_jumplow ; perhaps jump table is overkill here
+    EQUB LO(freeMark_done - 1)
+    EQUB LO(freeMark_cons - 1)
+    EQUB LO(freeMark_mark - 1)
+    EQUB LO(freeMark_mark - 1)
+    EQUB LO(freeMark_mark - 1)
+    EQUB LO(freeMark_mark - 1)
+    EQUB LO(freeMark_mark - 1)
+.freeMark_jumphigh
+    EQUB HI(freeMark_done - 1)
+    EQUB HI(freeMark_cons - 1)
+    EQUB HI(freeMark_mark - 1)
+    EQUB HI(freeMark_mark - 1)
+    EQUB HI(freeMark_mark - 1)
+    EQUB HI(freeMark_mark - 1)
+    EQUB HI(freeMark_mark - 1)
+
+.freeMark_mark
+    LDY #0
+    LDA #1
+    ORA (exp), Y
+    STA (exp), Y
+    RTS
+
+.freeMark_cons
+    PUSH exp
+    HEAD tmp, exp
+    LDY #0
+    LDA #1
+    ORA (exp), Y
+    STA (exp), Y
+    MOVE exp, tmp
+    JSR freeMark
+    PULL tmp
+    TAIL exp, tmp
+    JMP freeMark
+
 
 .freeReport
     LDA #'F'
