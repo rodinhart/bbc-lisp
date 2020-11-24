@@ -1,11 +1,13 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
+;; compare full symbol for eval symbol
+;; read decimal
 ;; print string
 ;; make all label verbNoun_sublabel
 ;; macro for init cells?
 ;; macro nil?
-;; macro setcar/setcdr
 ;; native doesn't have to be cell aligned
+;; getType to return result in Y?
 
 oswrch = &FFEE
 osasci = &FFE3
@@ -90,24 +92,24 @@ ORG &2000
 
     ADDR exp, source
     JSR read
-    PUSH ret
 
+    PUSH ret
     MOVE exp, ret
     JSR print
     JSR osnewl
 
-    JSR freeReport
-    JSR freeGC
-    JSR freeReport
-
     PULL exp
+    ADDR env, core
+    JSR eval
+    
+    MOVE exp, ret
     JSR print
     JSR osnewl
 
     RTS
 
 .source
-    EQUB "(def (fn (x) (* x x)))", 0
+    EQUB "(+ 2 3)", 0
 
 ALIGN 4
 .core
@@ -127,6 +129,8 @@ ALIGN 4
     ADDR ret, hard
     RTS
 
+.native_len_count
+    EQUB 0
 .native_len ; A = len(exp)
     LDA #0
     STA native_len_count
@@ -143,7 +147,6 @@ ALIGN 4
     TAIL tmp, exp
     MOVE exp, tmp
     JMP native_len_loop
-.native_len_count
 
 .eval
     JSR getType
@@ -182,14 +185,6 @@ ALIGN 4
     LDA (tmp), Y
     CMP (exp), Y
     BNE eval_symbol_next
-    ;INY
-    ;LDA (tmp), Y
-    ;CMP (exp), Y
-    ;BNE eval_symbol_next
-    ;INY
-    ;LDA (tmp), Y
-    ;CMP (exp), Y
-    ;BNE eval_symbol_next
 
     TAIL tmp, env
     HEAD ret, tmp
