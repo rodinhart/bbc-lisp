@@ -1,1 +1,1 @@
-beebasm.exe -i ./lisp.6502 -do ../mattgodbolt-jsbeeb/discs/lisp.ssd -boot Lisp
+beebasm.exe -i ./lisp.asm -do ../mattgodbolt-jsbeeb/discs/lisp.ssd -boot Lisp
