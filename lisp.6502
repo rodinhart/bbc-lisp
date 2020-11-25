@@ -8,6 +8,7 @@
 ;; macro nil?
 ;; native doesn't have to be cell aligned
 ;; getType to return result in Y?
+;; deal with HEAD exp, exp
 
 oswrch = &FFEE
 osasci = &FFE3
@@ -221,11 +222,39 @@ ALIGN 4
     RTS
 
 .eval_cons
+    JSR evalMap
+    HEAD exp, ret
+    HEAD tmp, exp
+    TAIL exp, ret
+    JMP (tmp)
+
+.evalMap ; (fn (exp) (if (nil? exp) nil (cons (eval (car exp)) (evalMap (cdr exp)))))
     LDA #0
+    CMP exp
+    BNE evalMap_map
+    CMP exp + 1
+    BNE evalMap_map
     STA ret
     STA ret + 1
     RTS
-
+.evalMap_map
+    PUSH exp
+    PUSH env
+    HEAD tmp, exp
+    MOVE exp, tmp
+    JSR eval
+    PULL env
+    PULL tmp
+    PUSH ret
+    TAIL exp, tmp
+    JSR evalMap
+    PUSH ret
+    JSR freeAlloc
+    PULL tmp
+    TAILSET ret, tmp
+    PULL tmp
+    HEADSET ret, tmp
+    RTS
 
 .getType ; exp => A
     ; nil?
@@ -319,16 +348,8 @@ ALIGN 4
     STA exp
     JSR print
 
-    PULL exp
-
-    LDY #2 ; exp = cdr(exp)
-    LDA (exp), Y
-    PHA
-    LDY #3
-    LDA (exp), Y
-    STA exp + 1
-    PLA
-    STA exp
+    PULL tmp
+    TAIL exp, tmp
 
     ; nil?
     LDA #0
@@ -386,12 +407,17 @@ ALIGN 4
     CMP #10
     BCC printByte_dec
     CLC
-    ADC #6
+    ADC #6 ; use lookup?
 .printByte_dec
     ADC print_0
     JSR osasci
     PLA
     AND print_0 + 1
+    CMP #10
+    BCC printByte_second
+    CLC
+    ADC #6
+.printByte_second
     CLC
     ADC print_0
     JSR osasci
