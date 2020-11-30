@@ -8,7 +8,6 @@
 ;; macro nil?
 ;; native doesn't have to be cell aligned
 ;; getType to return result in Y?
-;; deal with HEAD exp, exp
 
 oswrch = &FFEE
 osasci = &FFE3
@@ -26,12 +25,23 @@ MACRO ADDR reg, address
 ENDMACRO
 
 MACRO HEAD reg, pair
+IF reg != pair
     LDY #0
     LDA (pair), Y
     STA reg
     INY
     LDA (pair), Y
     STA reg + 1
+ELSE
+    LDY #0
+    LDA (pair), Y
+    PHA
+    INY
+    LDA (pair), Y
+    STA reg + 1
+    PLA
+    STA reg
+ENDIF
 ENDMACRO
 
 MACRO HEADSET pair, reg
@@ -67,12 +77,23 @@ MACRO PUSH reg
 ENDMACRO
 
 MACRO TAIL reg, pair
+IF reg != pair
     LDY #2
     LDA (pair), Y
     STA reg
     INY
     LDA (pair), Y
     STA reg + 1
+ELSE
+    LDY #2
+    LDA (pair), Y
+    PHA
+    INY
+    LDA (pair), Y
+    STA reg + 1
+    PLA
+    STA reg
+ENDIF
 ENDMACRO
 
 MACRO TAILSET pair, reg
@@ -146,8 +167,7 @@ ALIGN 4
     CLC
     ADC (tmp), Y
     PHA
-    TAIL tmp, exp
-    MOVE exp, tmp
+    TAIL exp, exp
     JMP native_plus_loop
 .native_plus_done
     JSR freeAlloc
@@ -174,8 +194,7 @@ ALIGN 4
     RTS
 .native_len_next
     INC native_len_count
-    TAIL tmp, exp
-    MOVE exp, tmp
+    TAIL exp, exp
     JMP native_len_loop
 
 .eval
@@ -269,8 +288,7 @@ ALIGN 4
 .evalMap_map
     PUSH exp
     PUSH env
-    HEAD tmp, exp
-    MOVE exp, tmp
+    HEAD exp, exp
     JSR eval
     PULL env
     PULL tmp
@@ -367,14 +385,7 @@ ALIGN 4
 
     PUSH exp
 
-    LDY #0 ; exp = car(exp)
-    LDA (exp), Y
-    PHA
-    INY
-    LDA (exp), Y
-    STA exp + 1
-    PLA
-    STA exp
+    HEAD exp, exp
     JSR print
 
     PULL tmp
