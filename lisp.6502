@@ -7,7 +7,7 @@
 ;; macro for init cells?
 ;; macro nil?
 ;; native doesn't have to be cell aligned
-;; getType to return result in Y?
+;; ZERO exp ?
 
 oswrch = &FFEE
 osasci = &FFE3
@@ -199,7 +199,6 @@ ALIGN 4
 
 .eval
     JSR getType
-    TAY
     LDA eval_jumphigh, Y
     PHA
     LDA eval_jumplow, Y
@@ -303,16 +302,15 @@ ALIGN 4
     HEADSET ret, tmp
     RTS
 
-.getType ; exp => A
+.getType ; exp => Y
     ; nil?
-    LDA #0
-    CMP exp
+    LDY #0
+    CPX exp
     BNE getType_notnil
-    CMP exp + 1
+    CPX exp + 1
     BNE getType_notnil
     RTS ; return 0
 .getType_notnil
-    LDY #0
     LDA (exp), Y
     BIT getType_testcons
     BNE getType_notcons
@@ -321,6 +319,7 @@ ALIGN 4
     AND getType_mask
     CLC
     ADC getType_consbase
+    TAY
     RTS ; return 1 = Cons, 2 = Proc, 3 = Macro, 4 = Native
 .getType_notcons
     LSR A
@@ -328,6 +327,7 @@ ALIGN 4
     AND getType_mask
     CLC
     ADC getType_primbase
+    TAY
     RTS ; return 5 = Symbol, 6 = Number
 .getType_testcons
     EQUB 2
@@ -340,7 +340,6 @@ ALIGN 4
 
 .print
     JSR getType
-    TAY
     LDA print_jumphigh, Y
     PHA
     LDA print_jumplow, Y
@@ -617,7 +616,6 @@ ALIGN 4
     BNE freeMark_done
 
     JSR getType
-    TAY
     LDA freeMark_jumphigh, Y
     PHA
     LDA freeMark_jumplow, Y
