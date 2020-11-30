@@ -131,7 +131,7 @@ ORG &2000
     RTS
 
 .source
-    EQUB "(+ 2 3 5)", 0
+    EQUB "(fn (x) (+ x x))", 0
 
 ALIGN 4
 .core
@@ -269,7 +269,7 @@ ALIGN 4
     RTS
 
 .eval_cons
-    JSR evalMap
+    JSR evalMap ; (+ 2 3 5)
     HEAD exp, ret
     HEAD tmp, exp
     TAIL exp, ret
@@ -305,9 +305,9 @@ ALIGN 4
 .getType ; exp => Y
     ; nil?
     LDY #0
-    CPX exp
+    CPY exp
     BNE getType_notnil
-    CPX exp + 1
+    CPY exp + 1
     BNE getType_notnil
     RTS ; return 0
 .getType_notnil
