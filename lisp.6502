@@ -9,6 +9,7 @@
 ;; native doesn't have to be cell aligned
 ;; getType to return result in Y?
 ;; deal with HEAD exp, exp
+;; use INY etc to reduce bytes
 
 oswrch = &FFEE
 osasci = &FFE3
@@ -110,22 +111,26 @@ ORG &2000
     RTS
 
 .source
-    EQUB "(+ 2 3 5 7)", 0
+    EQUB "+", 0
 
 ALIGN 4
 .core
     EQUW core_plus
     EQUW core + 4
     EQUW core_plus_
+    EQUW core + 8
+    EQUW coreNil
+    EQUW core + 12
+    EQUW 0
     EQUW 0
 .core_plus
     EQUB 2, '+', 0, 0
 .core_plus_
     EQUW native_plus
     EQUW 3
+.coreNil
+    EQUB 2, "nil"
 
-.hard
-    EQUB 6, &43, 0, 0
 .native_plus ; (fn args (reduce + 0 args))
     LDA #0
     PHA
@@ -337,7 +342,7 @@ ALIGN 4
     EQUB HI(print_cons - 1)
     EQUB HI(print_nil - 1)
     EQUB HI(print_nil - 1)
-    EQUB HI(print_nil - 1)
+    EQUB HI(print_native - 1)
     EQUB HI(print_symbol - 1)
     EQUB HI(print_number - 1)
 
