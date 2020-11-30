@@ -9,7 +9,6 @@
 ;; native doesn't have to be cell aligned
 ;; getType to return result in Y?
 ;; deal with HEAD exp, exp
-;; use INY etc to reduce bytes
 
 oswrch = &FFEE
 osasci = &FFE3
@@ -40,7 +39,7 @@ MACRO HEADSET pair, reg
     LDY #0
     STA (pair), Y
     LDA reg + 1
-    LDY #1
+    INY
     STA (pair), Y
 ENDMACRO
 
@@ -71,7 +70,7 @@ MACRO TAIL reg, pair
     LDY #2
     LDA (pair), Y
     STA reg
-    LDY #3
+    INY
     LDA (pair), Y
     STA reg + 1
 ENDMACRO
@@ -81,7 +80,7 @@ MACRO TAILSET pair, reg
     LDY #2
     STA (pair), Y
     LDA reg + 1
-    LDY #3
+    INY
     STA (pair), Y
 ENDMACRO
 
@@ -111,7 +110,7 @@ ORG &2000
     RTS
 
 .source
-    EQUB "+", 0
+    EQUB "(+ 2 3 5)", 0
 
 ALIGN 4
 .core
@@ -371,7 +370,7 @@ ALIGN 4
     LDY #0 ; exp = car(exp)
     LDA (exp), Y
     PHA
-    LDY #1
+    INY
     LDA (exp), Y
     STA exp + 1
     PLA
@@ -410,10 +409,10 @@ ALIGN 4
     LDY #1
     LDA (exp), Y
     JSR osasci
-    LDY #2
+    INY
     LDA (exp), Y
     JSR osasci
-    LDY #3
+    INY
     LDA (exp), Y
     JSR osasci
     RTS
@@ -507,11 +506,11 @@ ALIGN 4
     LDA #0
     LDY #0
     STA (ret), Y
-    LDY #1
+    INY
     STA (ret), Y
-    LDY #2
+    INY
     STA (ret), Y
-    LDY #3
+    INY
     STA (ret), Y
     RTS
 .free_outofmemory
@@ -726,13 +725,13 @@ ALIGN 4
     LDY #0
     STA (ret), Y
     LDA readNumber_buffer
-    LDY #1
+    INY
     STA (ret), Y
     LDA readNumber_buffer + 1
-    LDY #2
+    INY
     STA (ret), Y
     LDA readNumber_buffer + 2
-    LDY #3
+    INY
     STA (ret), Y
     RTS
 
