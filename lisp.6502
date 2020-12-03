@@ -142,6 +142,10 @@ ALIGN 4
     EQUW coreNil
     EQUW core + 12
     EQUW 0
+    EQUW core + 16
+    EQUW coreFn
+    EQUW core + 20
+    EQUW coreFn_
     EQUW 0
 .core_plus
     EQUB 2, '+', 0, 0
@@ -150,7 +154,24 @@ ALIGN 4
     EQUW 3
 .coreNil
     EQUB 2, "nil"
+.coreFn
+    EQUB 2, "fn", 0
+.coreFn_
+    EQUW primitiveFn
+    EQUW 2
 
+ALIGN 4
+.primitiveFn
+    JSR freeAlloc
+    HEADSET ret, exp
+    TAILSET ret, env
+    LDA #1
+    LDY #2
+    ORA (ret), Y
+    STA (ret), Y
+    RTS
+
+ALIGN 4
 .native_plus ; (fn args (reduce + 0 args))
     LDA #0
     PHA
@@ -269,10 +290,32 @@ ALIGN 4
     RTS
 
 .eval_cons
+    PUSH exp
+    PUSH env
+    HEAD exp, exp
+    JSR eval
+    PULL env
+    PULL tmp
+    TAIL exp, tmp
+    LDY #2
+    LDA (ret), Y
+    CMP #2
+    BNE eval_cons_apply
+    HEAD tmp, ret
+    PUSH env
+    JSR eval_cons_expand
+    MOVE exp, ret
+    PULL env
+    JMP eval
+.eval_cons_expand
+    JMP (tmp)
+    
+.eval_cons_apply
+    PUSH ret
     JSR evalMap ; (+ 2 3 5)
-    HEAD exp, ret
-    HEAD tmp, exp
-    TAIL exp, ret
+    MOVE exp, ret
+    PULL ret
+    HEAD tmp, ret
     JMP (tmp)
 
 .evalMap ; (fn (exp) (if (nil? exp) nil (cons (eval (car exp)) (evalMap (cdr exp)))))
@@ -348,16 +391,16 @@ ALIGN 4
 .print_jumplow
     EQUB LO(print_nil - 1)
     EQUB LO(print_cons - 1)
-    EQUB LO(print_nil - 1)
-    EQUB LO(print_nil - 1)
+    EQUB LO(print_proc - 1)
+    EQUB LO(print_macro - 1)
     EQUB LO(print_native - 1)
     EQUB LO(print_symbol - 1)
     EQUB LO(print_number - 1)
 .print_jumphigh
     EQUB HI(print_nil - 1)
     EQUB HI(print_cons - 1)
-    EQUB HI(print_nil - 1)
-    EQUB HI(print_nil - 1)
+    EQUB HI(print_proc - 1)
+    EQUB HI(print_macro - 1)
     EQUB HI(print_native - 1)
     EQUB HI(print_symbol - 1)
     EQUB HI(print_number - 1)
@@ -399,6 +442,38 @@ ALIGN 4
 .print_close
     PLA
     LDA #')'
+    JSR osasci
+    RTS
+
+.print_proc
+    LDA #'['
+    JSR osasci
+    LDA #'P'
+    JSR osasci
+    LDA #'R'
+    JSR osasci
+    LDA #'O'
+    JSR osasci
+    LDA #'C'
+    JSR osasci
+    LDA #']'
+    JSR osasci
+    RTS
+
+.print_macro
+    LDA #'['
+    JSR osasci
+    LDA #'M'
+    JSR osasci
+    LDA #'A'
+    JSR osasci
+    LDA #'C'
+    JSR osasci
+    LDA #'R'
+    JSR osasci
+    LDA #'O'
+    JSR osasci
+    LDA #']'
     JSR osasci
     RTS
 
