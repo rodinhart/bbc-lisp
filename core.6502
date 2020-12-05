@@ -1,0 +1,66 @@
+ALIGN 4
+.core
+    EQUW core_plus
+    EQUW core + 4
+    EQUW core_plus_
+    EQUW core + 8
+    EQUW coreNil
+    EQUW core + 12
+    EQUW 0
+    EQUW core + 16
+    EQUW coreFn
+    EQUW core + 20
+    EQUW coreFn_
+    EQUW 0
+.core_plus
+    EQUB 2, '+', 0, 0
+.core_plus_
+    EQUW native_plus
+    EQUW 3
+.coreNil
+    EQUB 2, "nil"
+.coreFn
+    EQUB 2, "fn", 0
+.coreFn_
+    EQUW primitiveFn
+    EQUW 2
+
+ALIGN 4
+.primitiveFn
+    JSR freeAlloc
+    HEADSET ret, exp
+    TAILSET ret, env
+    LDA #1
+    LDY #2
+    ORA (ret), Y
+    STA (ret), Y
+    RTS
+
+ALIGN 4
+.native_plus ; (fn args (reduce + 0 args))
+    LDA #0
+    PHA
+.native_plus_loop
+    LDA #0
+    CMP exp
+    BNE native_plus_add
+    CMP exp + 1 
+    BEQ native_plus_done
+.native_plus_add
+    HEAD tmp, exp
+    PLA
+    LDY #1 
+    CLC
+    ADC (tmp), Y
+    PHA
+    TAIL exp, exp
+    JMP native_plus_loop
+.native_plus_done
+    JSR freeAlloc
+    LDA #6
+    LDY #0
+    STA (ret), Y
+    PLA
+    LDY #1
+    STA (ret), Y
+    RTS
