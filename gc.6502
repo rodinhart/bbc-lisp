@@ -1,17 +1,19 @@
-.free
-    EQUB LO(end), HI(end)
-.freeHeapSize
+.free_heap
+    EQUW 0
+.free_size
     EQUB 128
+.free_list
+    EQUW 0
 
 .freeAlloc
     LDA #0
-    CMP free
+    CMP free_list
     BNE freeAlloc_notnil
-    CMP free + 1
-    BEQ free_outofmemory
+    CMP free_list + 1
+    BEQ freeAlloc_outofmemory
 .freeAlloc_notnil
-    MOVE ret, free
-    TAIL free, ret
+    MOVE ret, free_list
+    TAIL free_list, ret
     LDA #0
     LDY #0
     STA (ret), Y
@@ -22,7 +24,7 @@
     INY
     STA (ret), Y
     RTS
-.free_outofmemory
+.freeAlloc_outofmemory
     BRK
     EQUB 0, "Out of memory", 0
 
@@ -30,18 +32,18 @@
     TXA
     PHA
     LDA #0
-    STA free
-    STA free + 1
-    ADDR tmp, end
-    LDX freeHeapSize
+    STA free_list
+    STA free_list + 1
+    MOVE tmp, free_heap
+    LDX free_size
 .freeCollect_loop
     LDY #0
     LDA (tmp), Y
     BIT freeMark_mask
     BNE freeCollect_skip
 
-    TAILSET tmp, free
-    MOVE free, tmp
+    TAILSET tmp, free_list
+    MOVE free_list, tmp
 .freeCollect_next
     LDA #32
     CLC
@@ -78,26 +80,24 @@
 .freeGC_end
     JMP freeCollect
 
-
-.freeInit
-    ADDR tmp, end
+.freeInit ; exp = heap  X = heap size
+    MOVE free_heap, exp
+    STX free_size
     LDY #0
-    LDX freeHeapSize
 .freeInit_loop
     LDA #0 ; clear marked
-    STA (tmp), Y
+    STA (exp), Y
     LDA #32
     CLC
-    ADC tmp
-    STA tmp
+    ADC exp
+    STA exp
     LDA #0
-    ADC tmp + 1
-    STA tmp + 1
+    ADC exp + 1
+    STA exp + 1
     DEX
     BNE freeInit_loop
 
-    JSR freeCollect
-    RTS
+    JMP freeCollect
 
 .freeMark_mask
     EQUB 1
@@ -138,13 +138,6 @@
     EQUB HI(freeMark_mark - 1)
     EQUB HI(freeMark_mark - 1)
 
-.freeMark_mark
-    LDY #0
-    LDA #1
-    ORA (exp), Y
-    STA (exp), Y
-    RTS
-
 .freeMark_cons
     PUSH exp
     HEAD tmp, exp
@@ -158,6 +151,12 @@
     TAIL exp, tmp
     JMP freeMark
 
+.freeMark_mark
+    LDY #0
+    LDA #1
+    ORA (exp), Y
+    STA (exp), Y
+    RTS
 
 .freeReport
     LDA #'F'
@@ -170,8 +169,8 @@
     JSR osasci
     LDA #' '
     JSR osasci
-    MOVE exp, free
-    JSR native_len
+    MOVE exp, free_list
+    JSR freeCount
     JSR printDecimal
 
     LDA #',' ; print stack
@@ -184,20 +183,20 @@
     JSR osnewl
     RTS
 
-.native_len_count
+.freeCount_res
     EQUB 0
-.native_len ; A = len(exp)
+.freeCount ; A = count(exp)
     LDA #0
-    STA native_len_count
-.native_len_loop
+    STA freeCount_res
+.freeCount_loop
     LDA #0
     CMP exp
-    BNE native_len_next
+    BNE freeCount_next
     CMP exp + 1
-    BNE native_len_next
-    LDA native_len_count
+    BNE freeCount_next
+    LDA freeCount_res
     RTS
-.native_len_next
-    INC native_len_count
+.freeCount_next
+    INC freeCount_res
     TAIL exp, exp
-    JMP native_len_loop
+    JMP freeCount_loop

@@ -9,6 +9,7 @@
 ;; native doesn't have to be cell aligned
 ;; ZERO exp ?
 ;; 24 (25) bit floats?
+;; use ZP reg for freeCollect for speed
 
 oswrch = &FFEE
 osasci = &FFE3
@@ -24,6 +25,8 @@ INCLUDE "macros.6502"
 ORG &2000
 
 .start
+    ADDR exp, end
+    LDX #128
     JSR freeInit
     LDX #0 ; init stack
     JSR freeReport
