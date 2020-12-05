@@ -1,5 +1,6 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
+;; Use includes
 ;; compare full symbol for eval symbol
 ;; read decimal
 ;; print string
@@ -8,6 +9,8 @@
 ;; macro nil?
 ;; native doesn't have to be cell aligned
 ;; ZERO exp ?
+;; 24 (25) bit floats?
+
 
 oswrch = &FFEE
 osasci = &FFE3
@@ -131,7 +134,7 @@ ORG &2000
     RTS
 
 .source
-    EQUB "(fn (x) (+ x x))", 0
+    EQUB "((fn (x y) (+ y y y)) 3 4)", 0
 
 ALIGN 4
 .core
@@ -294,12 +297,15 @@ ALIGN 4
     PUSH env
     HEAD exp, exp
     JSR eval
+    MOVE exp, ret
+    JSR getType
+    TYA
+    PHA
     PULL env
     PULL tmp
     TAIL exp, tmp
-    LDY #2
-    LDA (ret), Y
-    CMP #2
+    PLA
+    CMP #3
     BNE eval_cons_apply
     HEAD tmp, ret
     PUSH env
@@ -311,12 +317,57 @@ ALIGN 4
     JMP (tmp)
     
 .eval_cons_apply
+    PHA
     PUSH ret
     JSR evalMap ; (+ 2 3 5)
     MOVE exp, ret
     PULL ret
+    PLA
+    CMP #4
+    BNE eval_cons_proc
     HEAD tmp, ret
-    JMP (tmp)
+    JMP (tmp) ; (+ 2 3)
+
+;; ((fn (x y) ...) a b)
+;; exp = (3 4) env = (k1 v1 k2 v2) ret = (((x y) ...) . storedEnv)
+.eval_cons_proc
+    TAIL env, ret
+    LDA env
+    AND #&FC
+    STA env
+    
+    HEAD ret, ret
+    PUSH ret
+    HEAD tmp, ret
+.eval_cons_loop
+    LDA #0
+    CMP tmp
+    BNE eval_cons_bind
+    CMP tmp + 1
+    BEQ evalProc_done
+.eval_cons_bind
+    JSR freeAlloc ; (_ . env)
+    TAILSET ret, env
+    MOVE env, ret
+
+    HEAD ret, exp ; (3 . env)
+    HEADSET env, ret
+    TAIL exp, exp
+
+    JSR freeAlloc ; (_ 3 . env)
+    TAILSET ret, env
+    MOVE env, ret
+
+    HEAD ret, tmp ; (x 3 . env)
+    HEADSET env, ret
+    TAIL tmp, tmp
+
+    JMP eval_cons_loop
+.evalProc_done
+    PULL exp
+    TAIL exp, exp
+    HEAD exp, exp
+    JMP eval
 
 .evalMap ; (fn (exp) (if (nil? exp) nil (cons (eval (car exp)) (evalMap (cdr exp)))))
     LDA #0
