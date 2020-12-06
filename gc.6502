@@ -159,16 +159,8 @@
     RTS
 
 .freeReport
-    LDA #'F'
-    JSR osasci
-    LDA #'r'
-    JSR osasci
-    LDA #'e'
-    JSR osasci
-    LDA #'e'
-    JSR osasci
-    LDA #' '
-    JSR osasci
+    ADDR exp, freeReport_label
+    JSR printString
     MOVE exp, free_list
     JSR freeCount
     JSR printDecimal
@@ -182,6 +174,8 @@
 
     JSR osnewl
     RTS
+.freeReport_label
+    EQUS "Free ", 0
 
 .freeCount_res
     EQUB 0

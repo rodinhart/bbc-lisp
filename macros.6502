@@ -41,6 +41,14 @@ MACRO MOVE target, source
     STA target + 1
 ENDMACRO
 
+MACRO NILL reg, altlabel
+    LDA #0
+    CMP reg
+    BNE altlabel
+    CMP reg + 1
+    BNE altlabel
+ENDMACRO
+
 MACRO PULL reg
     DEX
     LDA stack_low, X

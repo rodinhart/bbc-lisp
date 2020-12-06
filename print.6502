@@ -23,13 +23,10 @@
     EQUB HI(printNumber - 1)
 
 .printNil
-    LDA #'n'
-    JSR osasci
-    LDA #'i'
-    JSR osasci
-    LDA #'l'
-    JSR osasci
-    RTS
+    ADDR exp, printNil_label
+    JMP printString
+.printNil_label
+    EQUS "nil", 0
 
 .printCons
     LDA #'('
@@ -50,12 +47,7 @@
     PULL tmp
     TAIL exp, tmp
 
-    ; nil?
-    LDA #0
-    CMP exp
-    BNE printCons_loop
-    CMP exp + 1
-    BNE printCons_loop
+    NILL exp, printCons_loop
 
     PLA
     LDA #')'
@@ -63,49 +55,22 @@
     RTS
 
 .printProc
-    LDA #'['
-    JSR osasci
-    LDA #'P'
-    JSR osasci
-    LDA #'R'
-    JSR osasci
-    LDA #'O'
-    JSR osasci
-    LDA #'C'
-    JSR osasci
-    LDA #']'
-    JSR osasci
-    RTS
+    ADDR exp, printProc_label
+    JMP printString
+.printProc_label
+    EQUS "[PROC]", 0
 
 .printMacro
-    LDA #'['
-    JSR osasci
-    LDA #'M'
-    JSR osasci
-    LDA #'A'
-    JSR osasci
-    LDA #'C'
-    JSR osasci
-    LDA #'R'
-    JSR osasci
-    LDA #'O'
-    JSR osasci
-    LDA #']'
-    JSR osasci
-    RTS
+    ADDR exp, printMacro_label
+    JMP printString
+.printMacro_label
+    EQUS "[MACRO]", 0
 
 .printNative
-    LDA #'['
-    JSR osasci
-    LDA #'N'
-    JSR osasci
-    LDA #'A'
-    JSR osasci
-    LDA #'T'
-    JSR osasci
-    LDA #']'
-    JSR osasci
-    RTS
+    ADDR exp, printNative_label
+    JMP printString
+.printNative_label ; same as [PROC]?
+    EQUS "[NAT]", 0
 
 .printSymbol
     LDY #1

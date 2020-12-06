@@ -62,3 +62,14 @@
     LDA printDecimal_buffer + 2
     JSR osasci
     RTS
+
+.printString ; exp = "hello world"
+    LDY #0
+.printString_loop
+    LDA (exp), Y
+    BEQ printString_end
+    JSR osasci
+    INY
+    JMP printString_loop
+.printString_end
+    RTS
