@@ -11,6 +11,10 @@ ALIGN 4
     EQUW coreFn
     EQUW core + 20
     EQUW coreFn_
+    EQUW core + 24
+    EQUW coreDef
+    EQUW core + 28
+    EQUW coreDef_
     EQUW 0
 .core_plus
     EQUB 2, '+', 0, 0
@@ -24,6 +28,11 @@ ALIGN 4
 .coreFn_
     EQUW primitiveFn
     EQUW 2
+.coreDef
+    EQUB 2, "def"
+.coreDef_
+    EQUW primitiveDef
+    EQUW 2
 
 ALIGN 4
 .primitiveFn
@@ -34,6 +43,43 @@ ALIGN 4
     LDY #2
     ORA (ret), Y
     STA (ret), Y
+    RTS
+
+ALIGN 4
+.primitiveDef ; exp = (name value) env = (k1 v1 k2 v2 ...)
+    PUSH exp
+    PUSH env
+    TAIL exp, exp
+    HEAD exp, exp
+    JSR eval
+    PULL env
+    PULL exp
+.primitiveDef_seek
+    TAIL env, env
+    LDY #2
+    LDA #0
+    CMP (env), Y
+    BNE primitiveDef_seek
+    INY
+    CMP (env), Y
+    BNE primitiveDef_seek
+
+    MOVE tmp, ret
+    JSR freeAlloc
+    HEAD exp, exp
+    HEADSET ret, exp
+    TAILSET env, ret
+    MOVE env, ret
+
+    JSR freeAlloc
+    HEADSET ret, tmp
+    TAILSET env, ret
+    LDA #0
+    LDY #2
+    STA (ret), Y
+    INY
+    STA (ret), Y
+    TAIL ret, ret
     RTS
 
 ALIGN 4

@@ -32,10 +32,20 @@ ORG &2000
     LDX #128
     JSR freeInit
     LDX #0 ; init stack
-    JSR freeReport
 
-    ADDR exp, source
+    ADDR sourceReg, source
+.loop
+    JSR osnewl
+    JSR freeReport
+    MOVE exp, sourceReg
     JSR read
+    TYA
+    CLC
+    ADC sourceReg
+    STA sourceReg
+    LDA #0
+    ADC sourceReg + 1
+    STA sourceReg + 1
 
     PUSH ret
     MOVE exp, ret
@@ -50,8 +60,15 @@ ORG &2000
     JSR print
     JSR osnewl
 
-    RTS
+    MOVE exp, sourceReg
+    LDY #0
+    LDA #0
+    CMP (exp), Y
+    BNE loop
 
+    RTS
+.sourceReg
+    EQUW 0
 .source
     INCBIN "core.clj"
     EQUB 0

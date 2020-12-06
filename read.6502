@@ -2,7 +2,7 @@
     JMP readList
 .read_cursor
     EQUB 0
-.read
+.read ; ret = read(exp)
     LDY #0
     STY read_cursor
 .readToken
@@ -55,6 +55,7 @@
     LDA readNumber_buffer + 2
     INY
     STA (ret), Y
+    LDY read_cursor
     RTS
 
 .readNumber_buffer
@@ -143,4 +144,5 @@
     LDY #3
     LDA (tmp), Y
     STA ret + 1
+    LDY read_cursor
     RTS
