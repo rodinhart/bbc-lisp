@@ -10,6 +10,8 @@
 ;; ZERO exp ?
 ;; 24 (25) bit floats?
 ;; use ZP reg for freeCollect for speed
+;; use free as ref
+;; sort out core and gc
 
 oswrch = &FFEE
 osasci = &FFE3
@@ -25,7 +27,8 @@ INCLUDE "macros.6502"
 ORG &2000
 
 .start
-    ADDR exp, end
+    ADDR exp, stack_high
+    INC exp + 1
     LDX #128
     JSR freeInit
     LDX #0 ; init stack
@@ -50,22 +53,21 @@ ORG &2000
     RTS
 
 .source
-    EQUB "((fn (x y) (+ y y y)) 3 4)", 0
+    INCBIN "core.clj"
+    EQUB 0
 
-INCLUDE "core.6502"
-INCLUDE "eval.6502"
-INCLUDE "gc.6502"
-INCLUDE "print.6502"
-INCLUDE "read.6502"
-INCLUDE "types.6502"
-INCLUDE "util.6502"
+    INCLUDE "core.6502"
+    INCLUDE "eval.6502"
+    INCLUDE "gc.6502"
+    INCLUDE "print.6502"
+    INCLUDE "read.6502"
+    INCLUDE "types.6502"
+    INCLUDE "util.6502"
+.end
 
 ALIGN &100
 .stack_low
-    SKIP 256
-ALIGN &100
-.stack_high
-    SKIP 256
-.end
+stack_high = stack_low + &100
+
 
 SAVE "Lisp", start, end
