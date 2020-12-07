@@ -12,7 +12,7 @@ IF reg != pair
     STA reg
     INY
     LDA (pair), Y
-    STA reg + 1
+    STA reg + 1  ; 11 bytes
 ELSE
     LDY #0
     LDA (pair), Y
@@ -21,7 +21,7 @@ ELSE
     LDA (pair), Y
     STA reg + 1
     PLA
-    STA reg
+    STA reg ; 13 bytes
 ENDIF
 ENDMACRO
 
@@ -79,7 +79,7 @@ IF reg != pair
     STA reg
     INY
     LDA (pair), Y
-    STA reg + 1
+    STA reg + 1 ; 11 bytes
 ELSE
     LDY #2
     LDA (pair), Y
@@ -88,7 +88,7 @@ ELSE
     LDA (pair), Y
     STA reg + 1
     PLA
-    STA reg
+    STA reg ; 13 bytes
 ENDIF
 ENDMACRO
 

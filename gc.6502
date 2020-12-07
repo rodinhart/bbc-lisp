@@ -1,5 +1,5 @@
 .free_heap
-    EQUW 0
+    EQUW stack_high + &100
 .free_size
     EQUB 128
 
@@ -80,10 +80,10 @@
 .freeGC_end
     JMP freeCollect
 
-.freeInit ; exp = heap  X = heap size
-    MOVE free_heap, exp
-    STX free_size
+.freeInit
     LDY #0
+    MOVE exp, free_heap
+    LDX free_size
 .freeInit_loop
     LDA #0 ; clear marked
     STA (exp), Y

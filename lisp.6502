@@ -1,7 +1,6 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
 ;; read decimal
-;; print string
 ;; make all label verbNoun_sublabel
 ;; macro for init cells?
 ;; macro nil?
@@ -25,9 +24,6 @@ INCLUDE "macros.6502"
 ORG &2000
 
 .start
-    ADDR exp, stack_high
-    INC exp + 1
-    LDX #128
     JSR freeInit
 
     JSR coreInit
@@ -49,10 +45,10 @@ ORG &2000
     STA sourceReg + 1
 
     MOVE exp, ret
-    ;PUSH exp
-    ;JSR print
-    ;JSR osnewl
-    ;PULL exp
+     ;PUSH exp
+     ;JSR print
+     ;JSR osnewl
+     ;PULL exp
 
     PEEK env
     JSR eval

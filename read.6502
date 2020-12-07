@@ -97,6 +97,7 @@
     INC read_cursor
 
 .readSymbol_end
+    LDY read_cursor
     RTS
 
 .readWS

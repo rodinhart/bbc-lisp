@@ -12,68 +12,29 @@
     INY
     STA (tmp), Y
 
+    LDX #0
+
     JSR freeAlloc
     TAILSET ret, tmp
     MOVE tmp, ret
     JSR freeAlloc
     HEADSET tmp, ret
-    LDA #2
-    LDY #0
-    STA (ret), Y
-    LDA #'n'
-    INY
-    STA (ret), Y
-    LDA #'i'
-    INY
-    STA (ret), Y
-    LDA #'l'
-    INY
-    STA (ret), Y
+    JSR coreInit_copy
 
-    LDX #0
 .coreInit_loop
     JSR freeAlloc
     TAILSET ret, tmp
     MOVE tmp, ret
     JSR freeAlloc
     HEADSET tmp, ret
-    LDA coreKvs, X
-    INX
-    LDY #0
-    STA (ret), Y
-    LDA coreKvs, X
-    INX
-    INY
-    STA (ret), Y
-    LDA coreKvs, X
-    INX
-    INY
-    STA (ret), Y
-    LDA coreKvs, X
-    INX
-    INY
-    STA (ret), Y
+    JSR coreInit_copy
 
     JSR freeAlloc
     TAILSET ret, tmp
     MOVE tmp, ret
     JSR freeAlloc
     HEADSET tmp, ret
-    LDA #2
-    LDY #0
-    STA (ret), Y
-    LDA coreKvs, X
-    INX
-    INY
-    STA (ret), Y
-    LDA coreKvs, X
-    INX
-    INY
-    STA (ret), Y
-    LDA coreKvs, X
-    INX
-    INY
-    STA (ret), Y
+    JSR coreInit_copy
 
     LDA coreKvs, X
     BEQ coreInit_end
@@ -82,56 +43,41 @@
     MOVE ret, tmp
     RTS
 
+.coreInit_copy ; (ret), Y = coreKvs + X
+    LDA coreKvs, X
+    INX
+    LDY #0
+    STA (ret), Y
+    LDA coreKvs, X
+    INX
+    INY
+    STA (ret), Y
+    LDA coreKvs, X
+    INX
+    INY
+    STA (ret), Y
+    LDA coreKvs, X
+    INX
+    INY
+    STA (ret), Y
+    RTS
+
 .coreKvs
+    EQUB 2, "nil"
+
     EQUW native_plus
     EQUW 3
-    EQUB "+", 0, 0
+    EQUB 2, "+", 0, 0
 
     EQUW primitiveFn
     EQUW 2
-    EQUB "fn", 0
+    EQUB 2, "fn", 0
 
     EQUW primitiveDef
     EQUW 2
-    EQUB "def"
+    EQUB 2, "def"
 
     EQUB 0
-
-ALIGN 4
-.core
-    EQUW core_plus
-    EQUW core + 4
-    EQUW core_plus_
-    EQUW core + 8
-    EQUW coreNil
-    EQUW core + 12
-    EQUW 0
-    EQUW core + 16
-    EQUW coreFn
-    EQUW core + 20
-    EQUW coreFn_
-    EQUW core + 24
-    EQUW coreDef
-    EQUW core + 28
-    EQUW coreDef_
-    EQUW 0
-.core_plus
-    EQUB 2, '+', 0, 0
-.core_plus_
-    EQUW native_plus
-    EQUW 3
-.coreNil
-    EQUB 2, "nil"
-.coreFn
-    EQUB 2, "fn", 0
-.coreFn_
-    EQUW primitiveFn
-    EQUW 2
-.coreDef
-    EQUB 2, "def"
-.coreDef_
-    EQUW primitiveDef
-    EQUW 2
 
 ALIGN 4
 .primitiveFn
