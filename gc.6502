@@ -2,18 +2,16 @@
     EQUW 0
 .free_size
     EQUB 128
-.free_list
-    EQUW 0
 
 .freeAlloc
     LDA #0
-    CMP free_list
+    CMP frl
     BNE freeAlloc_notnil
-    CMP free_list + 1
+    CMP frl + 1
     BEQ freeAlloc_outofmemory
 .freeAlloc_notnil
-    MOVE ret, free_list
-    TAIL free_list, ret
+    MOVE ret, frl
+    TAIL frl, ret
     LDA #0
     LDY #0
     STA (ret), Y
@@ -32,8 +30,8 @@
     TXA
     PHA
     LDA #0
-    STA free_list
-    STA free_list + 1
+    STA frl
+    STA frl + 1
     MOVE tmp, free_heap
     LDX free_size
 .freeCollect_loop
@@ -42,8 +40,8 @@
     BIT freeMark_mask
     BNE freeCollect_skip
 
-    TAILSET tmp, free_list
-    MOVE free_list, tmp
+    TAILSET tmp, frl
+    MOVE frl, tmp
 .freeCollect_next
     LDA #32
     CLC
@@ -179,7 +177,7 @@
 .freeReport
     ADDR exp, freeReport_label
     JSR printString
-    MOVE exp, free_list
+    MOVE exp, frl
     JSR freeCount
     JSR printDecimal
 

@@ -9,9 +9,6 @@
 ;; native doesn't have to be cell aligned
 ;; ZERO exp ?
 ;; 24 (25) bit floats?
-;; use ZP reg for freeCollect for speed
-;; use free as ref
-;; sort out core and gc
 ;; cons macro?
 
 oswrch = &FFEE
@@ -22,6 +19,7 @@ ret = &70
 exp = &72
 env = &74
 tmp = &76
+frl = &78
 
 INCLUDE "macros.6502"
 
