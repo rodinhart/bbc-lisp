@@ -69,13 +69,15 @@
 .freeGC_loop
     LDY freeGC_sp
     BEQ freeGC_end
-    DEY
-    STY freeGC_sp
     LDA stack_low, Y
     STA exp
     LDA stack_high, Y
     STA exp + 1
     JSR freeMark
+
+    LDY freeGC_sp
+    INY
+    STY freeGC_sp
     JMP freeGC_loop
 .freeGC_end
     JMP freeCollect

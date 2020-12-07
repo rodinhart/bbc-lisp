@@ -57,8 +57,7 @@ ORG &2000
     ;JSR osnewl
     ;PULL exp
 
-    PULL env ; peek stack?
-    PUSH env
+    PEEK env
     JSR eval
     
     MOVE exp, ret
