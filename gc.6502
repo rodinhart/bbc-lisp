@@ -124,7 +124,7 @@
 .freeMark_jumplow ; perhaps jump table is overkill here
     EQUB LO(freeMark_done - 1)
     EQUB LO(freeMark_cons - 1)
-    EQUB LO(freeMark_mark - 1)
+    EQUB LO(freeMark_proc - 1)
     EQUB LO(freeMark_mark - 1)
     EQUB LO(freeMark_mark - 1)
     EQUB LO(freeMark_mark - 1)
@@ -132,7 +132,7 @@
 .freeMark_jumphigh
     EQUB HI(freeMark_done - 1)
     EQUB HI(freeMark_cons - 1)
-    EQUB HI(freeMark_mark - 1)
+    EQUB HI(freeMark_proc - 1)
     EQUB HI(freeMark_mark - 1)
     EQUB HI(freeMark_mark - 1)
     EQUB HI(freeMark_mark - 1)
@@ -149,6 +149,22 @@
     JSR freeMark
     PULL tmp
     TAIL exp, tmp
+    JMP freeMark
+
+.freeMark_proc
+    PUSH exp
+    HEAD tmp, exp
+    LDY #0
+    LDA #1
+    ORA (exp), Y
+    STA (exp), Y
+    MOVE exp, tmp
+    JSR freeMark
+    PULL tmp
+    TAIL exp, tmp
+    LDA exp
+    AND #&FC
+    STA exp
     JMP freeMark
 
 .freeMark_mark

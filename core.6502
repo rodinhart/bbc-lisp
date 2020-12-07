@@ -1,3 +1,102 @@
+.coreInit
+    LDA #0
+    STA tmp
+    STA tmp + 1
+
+    JSR freeAlloc
+    TAILSET ret, tmp
+    MOVE tmp, ret
+    LDA #0
+    LDY #0
+    STA (tmp), Y
+    INY
+    STA (tmp), Y
+
+    JSR freeAlloc
+    TAILSET ret, tmp
+    MOVE tmp, ret
+    JSR freeAlloc
+    HEADSET tmp, ret
+    LDA #2
+    LDY #0
+    STA (ret), Y
+    LDA #'n'
+    INY
+    STA (ret), Y
+    LDA #'i'
+    INY
+    STA (ret), Y
+    LDA #'l'
+    INY
+    STA (ret), Y
+
+    LDX #0
+.coreInit_loop
+    JSR freeAlloc
+    TAILSET ret, tmp
+    MOVE tmp, ret
+    JSR freeAlloc
+    HEADSET tmp, ret
+    LDA coreKvs, X
+    INX
+    LDY #0
+    STA (ret), Y
+    LDA coreKvs, X
+    INX
+    INY
+    STA (ret), Y
+    LDA coreKvs, X
+    INX
+    INY
+    STA (ret), Y
+    LDA coreKvs, X
+    INX
+    INY
+    STA (ret), Y
+
+    JSR freeAlloc
+    TAILSET ret, tmp
+    MOVE tmp, ret
+    JSR freeAlloc
+    HEADSET tmp, ret
+    LDA #2
+    LDY #0
+    STA (ret), Y
+    LDA coreKvs, X
+    INX
+    INY
+    STA (ret), Y
+    LDA coreKvs, X
+    INX
+    INY
+    STA (ret), Y
+    LDA coreKvs, X
+    INX
+    INY
+    STA (ret), Y
+
+    LDA coreKvs, X
+    BEQ coreInit_end
+    JMP coreInit_loop
+.coreInit_end
+    MOVE ret, tmp
+    RTS
+
+.coreKvs
+    EQUW native_plus
+    EQUW 3
+    EQUB "+", 0, 0
+
+    EQUW primitiveFn
+    EQUW 2
+    EQUB "fn", 0
+
+    EQUW primitiveDef
+    EQUW 2
+    EQUB "def"
+
+    EQUB 0
+
 ALIGN 4
 .core
     EQUW core_plus

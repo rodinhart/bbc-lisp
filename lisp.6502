@@ -12,6 +12,7 @@
 ;; use ZP reg for freeCollect for speed
 ;; use free as ref
 ;; sort out core and gc
+;; cons macro?
 
 oswrch = &FFEE
 osasci = &FFE3
@@ -31,7 +32,10 @@ ORG &2000
     INC exp + 1
     LDX #128
     JSR freeInit
+
+    JSR coreInit
     LDX #0 ; init stack
+    PUSH ret
 
     ADDR sourceReg, source
 .loop
@@ -47,18 +51,21 @@ ORG &2000
     ADC sourceReg + 1
     STA sourceReg + 1
 
-    PUSH ret
     MOVE exp, ret
-    JSR print
-    JSR osnewl
+    ;PUSH exp
+    ;JSR print
+    ;JSR osnewl
+    ;PULL exp
 
-    PULL exp
-    ADDR env, core
+    PULL env ; peek stack?
+    PUSH env
     JSR eval
     
     MOVE exp, ret
     JSR print
     JSR osnewl
+
+    JSR freeGC
 
     MOVE exp, sourceReg
     LDY #0
