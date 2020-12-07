@@ -3,9 +3,7 @@
     STA tmp
     STA tmp + 1
 
-    JSR freeAlloc
-    TAILSET ret, tmp
-    MOVE tmp, ret
+    JSR coreInit_prepend
     LDA #0
     LDY #0
     STA (tmp), Y
@@ -13,37 +11,28 @@
     STA (tmp), Y
 
     LDX #0
-
-    JSR freeAlloc
-    TAILSET ret, tmp
-    MOVE tmp, ret
-    JSR freeAlloc
-    HEADSET tmp, ret
     JSR coreInit_copy
-
 .coreInit_loop
-    JSR freeAlloc
-    TAILSET ret, tmp
-    MOVE tmp, ret
-    JSR freeAlloc
-    HEADSET tmp, ret
     JSR coreInit_copy
-
-    JSR freeAlloc
-    TAILSET ret, tmp
-    MOVE tmp, ret
-    JSR freeAlloc
-    HEADSET tmp, ret
     JSR coreInit_copy
 
     LDA coreKvs, X
-    BEQ coreInit_end
+    BEQ coreInit_end ; this check is not legit against lo byte of native routine
     JMP coreInit_loop
 .coreInit_end
     MOVE ret, tmp
     RTS
 
-.coreInit_copy ; (ret), Y = coreKvs + X
+.coreInit_prepend
+    JSR freeAlloc
+    TAILSET ret, tmp
+    MOVE tmp, ret
+    RTS
+
+.coreInit_copy
+    JSR coreInit_prepend
+    JSR freeAlloc
+    HEADSET tmp, ret
     LDA coreKvs, X
     INX
     LDY #0
