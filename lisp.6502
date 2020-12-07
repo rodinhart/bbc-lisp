@@ -1,6 +1,5 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
-;; compare full symbol for eval symbol
 ;; read decimal
 ;; print string
 ;; make all label verbNoun_sublabel

@@ -35,6 +35,16 @@
     CMP (exp), Y
     BNE eval_symbol_next
 
+    INY
+    LDA (tmp), y
+    CMP (exp), y
+    BNE eval_symbol_next
+
+    INY
+    LDA (tmp), y
+    CMP (exp), y
+    BNE eval_symbol_next
+
     TAIL tmp, env
     HEAD ret, tmp
     RTS
