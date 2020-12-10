@@ -54,10 +54,6 @@
 .coreKvs
     EQUB 2, "nil"
 
-    EQUW native_plus
-    EQUW 3
-    EQUB 2, "+", 0, 0
-
     EQUW primitiveFn
     EQUW 2
     EQUB 2, "fn", 0
@@ -73,6 +69,10 @@
     EQUW primitiveQuote
     EQUW 2
     EQUB 2, "quo"
+
+    EQUW native_plus
+    EQUW 3
+    EQUB 2, "+", 0, 0
 
     EQUB 0
 
@@ -122,21 +122,23 @@ ALIGN 4
     INY
     STA (ret), Y
     TAIL ret, ret
-    RTS
+    RTS ; return name
 
 ALIGN 4
 .primitiveIf ; (macro (pred cons alt) (if pred cons alt))
     PUSH exp
+    PUSH env
     HEAD exp, exp ; get pred
     JSR eval
+    PULL env
     PULL exp
     TAIL exp, exp ; get (cons alt)
     LDA #0
     CMP ret
     BEQ primitiveIf_maybealt
 .primitiveIf_eval
-    HEAD ret, exp
-    RTS
+    HEAD exp, exp
+    JMP eval
 .primitiveIf_maybealt
     CMP ret + 1
     BNE primitiveIf_eval

@@ -95,12 +95,6 @@
     CMP #3
     BNE eval_cons_apply
     HEAD tmp, ret
-    PUSH env
-    JSR eval_cons_expand
-    MOVE exp, ret
-    PULL env
-    JMP eval
-.eval_cons_expand
     JMP (tmp)
     
 .eval_cons_apply
