@@ -103,6 +103,7 @@
 .readWS
     LDY read_cursor
     LDA (exp), Y
+    BEQ readWS_end
     CMP #33
     BCS readWS_end
     INC read_cursor
