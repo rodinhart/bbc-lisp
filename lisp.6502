@@ -78,7 +78,7 @@ ORG &2000
     INCLUDE "print.6502"
     INCLUDE "read.6502"
     INCLUDE "types.6502"
-    INCLUDE "util.6502"
+    INCLUDE "util.s"
 .end
 
 ALIGN &100
