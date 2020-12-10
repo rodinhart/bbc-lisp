@@ -19,7 +19,7 @@ env = &74
 tmp = &76
 frl = &78
 
-INCLUDE "macros.6502"
+INCLUDE "macros.s"
 
 ORG &2000
 
@@ -72,12 +72,12 @@ ORG &2000
     INCBIN "core.clj"
     EQUB 0
 
-    INCLUDE "core.6502"
-    INCLUDE "eval.6502"
-    INCLUDE "gc.6502"
-    INCLUDE "print.6502"
-    INCLUDE "read.6502"
-    INCLUDE "types.6502"
+    INCLUDE "core.s"
+    INCLUDE "eval.s"
+    INCLUDE "gc.s"
+    INCLUDE "print.s"
+    INCLUDE "read.s"
+    INCLUDE "types.s"
     INCLUDE "util.s"
 .end
 
