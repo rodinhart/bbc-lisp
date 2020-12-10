@@ -66,10 +66,18 @@
     EQUW 2
     EQUB 2, "def"
 
+    EQUW primitiveIf
+    EQUW 2
+    EQUB 2, "if", 0
+
+    EQUW primitiveQuote
+    EQUW 2
+    EQUB 2, "quo"
+
     EQUB 0
 
 ALIGN 4
-.primitiveFn
+.primitiveFn ; (macro (names body) (fn names body))
     JSR freeAlloc
     HEADSET ret, exp
     TAILSET ret, env
@@ -80,7 +88,7 @@ ALIGN 4
     RTS
 
 ALIGN 4
-.primitiveDef ; exp = (name value) env = (k1 v1 k2 v2 ...)
+.primitiveDef ; (macro (name value) (def name value))
     PUSH exp
     PUSH env
     TAIL exp, exp
@@ -114,6 +122,30 @@ ALIGN 4
     INY
     STA (ret), Y
     TAIL ret, ret
+    RTS
+
+ALIGN 4
+.primitiveIf ; (macro (pred cons alt) (if pred cons alt))
+    PUSH exp
+    HEAD exp, exp ; get pred
+    JSR eval
+    PULL exp
+    TAIL exp, exp ; get (cons alt)
+    LDA #0
+    CMP ret
+    BEQ primitiveIf_maybealt
+.primitiveIf_eval
+    HEAD ret, exp
+    RTS
+.primitiveIf_maybealt
+    CMP ret + 1
+    BNE primitiveIf_eval
+    TAIL exp, exp
+    JMP primitiveIf_eval
+
+ALIGN 4
+.primitiveQuote ; (macro (value) (quote value))
+    HEAD ret, exp
     RTS
 
 ALIGN 4
