@@ -8,6 +8,7 @@
 ;; ZERO exp ?
 ;; 24 (25) bit floats?
 ;; cons macro?
+;; use zero page for temp stuff (like read number)
 
 oswrch = &FFEE
 osasci = &FFE3

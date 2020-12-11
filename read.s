@@ -17,22 +17,38 @@
     BCS readToken_notnumber
 
     LDA #0 ; clear buffer
-    STA readNumber_buffer
-    STA readNumber_buffer + 1
-    STA readNumber_buffer + 2
+    STA tmp
+    STA tmp + 1
 .readNumber_loop
-    LDA readNumber_buffer
+    ; x10
+    LDA tmp ; x2
     ASL A
-    ASL A
-    ASL A
-    ASL A
-    STA readNumber_buffer
+    STA ret
+    LDA tmp + 1
+    ROL A
+    STA ret + 1
+    ASL ret ; x4
+    ROL ret + 1
+    LDA ret ; x4 + 1
+    CLC
+    ADC tmp
+    STA tmp
+    LDA ret + 1
+    ADC tmp + 1
+    STA tmp + 1
+    ASL tmp ; (x4 + 1)x2
+    ROL tmp + 1
+
     LDY read_cursor
     LDA (exp), Y
     SEC
     SBC print_0
-    ORA readNumber_buffer
-    STA readNumber_buffer
+    CLC
+    ADC tmp
+    STA tmp
+    LDA #0
+    ADC tmp + 1
+    STA tmp + 1
 
     INC read_cursor
     LDY read_cursor
@@ -46,20 +62,17 @@
     LDA #6 ; refactor create_number
     LDY #0
     STA (ret), Y
-    LDA readNumber_buffer
+    LDA tmp
     INY
     STA (ret), Y
-    LDA readNumber_buffer + 1
+    LDA tmp + 1
     INY
     STA (ret), Y
-    LDA readNumber_buffer + 2
+    LDA #0
     INY
     STA (ret), Y
     LDY read_cursor
     RTS
-
-.readNumber_buffer
-    EQUB 0, 0, 0
 
 .readToken_notnumber
     JSR freeAlloc
