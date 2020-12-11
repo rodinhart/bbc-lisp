@@ -1,9 +1,10 @@
+.coreInit_return
+    EQUW 0
+    EQUW 0
 .coreInit
-    LDA #0
-    STA tmp
-    STA tmp + 1
+    ADDR tmp, coreInit_return
 
-    JSR coreInit_prepend
+    JSR coreInit_append
     LDA #0
     LDY #0
     STA (tmp), Y
@@ -17,20 +18,29 @@
     JSR coreInit_copy
 
     LDA coreKvs, X
-    BEQ coreInit_end ; this check is not legit against lo byte of native routine
+    BEQ coreInit_end
     JMP coreInit_loop
 .coreInit_end
-    MOVE ret, tmp
+    LDA #0 ; terminate list
+    LDY #2
+    STA (tmp), Y
+    INY
+    STA (tmp), Y
+
+    LDA coreInit_return + 2
+    STA ret
+    LDA coreInit_return + 3
+    STA ret + 1
     RTS
 
-.coreInit_prepend
+.coreInit_append
     JSR freeAlloc
-    TAILSET ret, tmp
+    TAILSET tmp, ret
     MOVE tmp, ret
     RTS
 
 .coreInit_copy
-    JSR coreInit_prepend
+    JSR coreInit_append
     JSR freeAlloc
     HEADSET tmp, ret
     LDA coreKvs, X
@@ -54,33 +64,33 @@
 .coreKvs
     EQUB 2, "nil"
 
+    EQUB 2, "fn", 0
     EQUW primitiveFn
     EQUW 2
-    EQUB 2, "fn", 0
 
+    EQUB 2, "def"
     EQUW primitiveDef
     EQUW 2
-    EQUB 2, "def"
 
+    EQUB 2, "if", 0
     EQUW primitiveIf
     EQUW 2
-    EQUB 2, "if", 0
 
+    EQUB 2, "quo"
     EQUW primitiveQuote
     EQUW 2
-    EQUB 2, "quo"
 
+    EQUB 2, "+", 0, 0
     EQUW native_plus
     EQUW 3
-    EQUB 2, "+", 0, 0
 
+    EQUB 2, "car"
     EQUW native_car
     EQUW 3
-    EQUB 2, "car"
 
+    EQUB 2, "cdr"
     EQUW native_cdr
     EQUW 3
-    EQUB 2, "cdr"
 
     EQUB 0
 
