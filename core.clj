@@ -1,9 +1,6 @@
-(def sq (fn (x) (+ x x)))
+(def len (fn (xs)
+  (if xs
+    (+ 1 (len (cdr xs)))
+    0)))
 
-(sq 7)
-
-(sq 6)
-
-(if nil (+ 1 1) (+ 1 1 1))
-
-(quo (2 3 5 7))
+(len (quo (1 1 1 1 1)))

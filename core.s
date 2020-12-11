@@ -74,6 +74,14 @@
     EQUW 3
     EQUB 2, "+", 0, 0
 
+    EQUW native_car
+    EQUW 3
+    EQUB 2, "car"
+
+    EQUW native_cdr
+    EQUW 3
+    EQUB 2, "cdr"
+
     EQUB 0
 
 ALIGN 4
@@ -177,4 +185,16 @@ ALIGN 4
     PLA
     LDY #1
     STA (ret), Y
+    RTS
+
+ALIGN 4
+.native_car ; (fn (pair) (car pair))
+    HEAD tmp, exp
+    HEAD ret, tmp
+    RTS
+
+ALIGN 4
+.native_cdr ; (fn (pair) (cdr pair))
+    HEAD tmp, exp
+    TAIL ret, tmp
     RTS
