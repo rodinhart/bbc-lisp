@@ -1,7 +1,7 @@
 .free_heap
-    EQUW stack_high + &100
+    EQUW heap_start
 .free_size
-    EQUB 128
+    EQUB (heap_end - heap_start) DIV 32
 
 .freeAlloc
     LDA #0

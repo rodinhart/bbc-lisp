@@ -83,9 +83,19 @@ ORG &2000
     INCLUDE "util.s"
 .end
 
-ALIGN &100
+    ALIGN &100
 .stack_low
-stack_high = stack_low + &100
-
+    SKIP 256
+.stack_high
+    SKIP 256
+.heap_start
+    SKIP 128 * 32
+.heap_end
+.tests
+    LDA #'T'
+    JSR osasci
+    RTS
+.tests_end
 
 SAVE "Lisp", start, end
+SAVE "Tests", start, tests_end, tests
