@@ -84,6 +84,7 @@
     LDY read_cursor
     LDA (exp), Y
     LDY #1
+    ASL A
     STA (ret), Y
     INC read_cursor
 
@@ -95,6 +96,7 @@
     CMP #')'
     BEQ readSymbol_end
     LDY #2
+    ASL A
     STA (ret), Y
     INC read_cursor
 
@@ -106,8 +108,43 @@
     CMP #')'
     BEQ readSymbol_end
     LDY #3
+    ASL A
     STA (ret), Y
     INC read_cursor
+
+    ; read fourth char
+    LDY read_cursor
+    LDA (exp), Y
+    CMP #33
+    BCC readSymbol_end
+    CMP #')'
+    BEQ readSymbol_end
+    
+    ASL A
+    STA tmp
+
+    ASL tmp
+    LDA #0
+    LDY #3
+    ADC (ret), Y
+    STA (ret), Y
+
+    ASL tmp
+    LDA #0
+    DEY
+    ADC (ret), Y
+    STA (ret), Y
+
+    ASL tmp
+    LDA #0
+    DEY
+    ADC (ret), Y
+    STA (ret), Y
+
+    LDA tmp
+    DEY
+    ORA (ret), Y
+    STA (ret), Y
 
 .readSymbol_end
     LDY read_cursor

@@ -62,33 +62,33 @@
     RTS
 
 .coreKvs
-    EQUB 2, "nil"
+    EQUB "nil", 0
 
-    EQUB 2, "fn", 0
+    EQUB "fn", 0, 0
     EQUW primitiveFn
     EQUW 2
 
-    EQUB 2, "def"
+    EQUB "def", 0
     EQUW primitiveDef
     EQUW 2
 
-    EQUB 2, "if", 0
+    EQUB "if", 0, 0
     EQUW primitiveIf
     EQUW 2
 
-    EQUB 2, "quo"
+    EQUB "quot", 0
     EQUW primitiveQuote
     EQUW 2
 
-    EQUB 2, "+", 0, 0
+    EQUB "+", 0, 0, 0
     EQUW native_plus
     EQUW 3
 
-    EQUB 2, "car"
+    EQUB "head"
     EQUW native_car
     EQUW 3
 
-    EQUB 2, "cdr"
+    EQUB "tail"
     EQUW native_cdr
     EQUW 3
 

@@ -1,15 +1,13 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
-;; read decimal
 ;; make all label verbNoun_sublabel
 ;; macro for init cells?
-;; macro nil?
-;; native doesn't have to be cell aligned
 ;; ZERO exp ?
-;; 24 (25) bit floats?
 ;; cons macro?
 ;; use zero page for temp stuff (like read number)
 ;; add tests
+;; add *
+;; refactor symbol decoding (unknown & print)
 
 oswrch = &FFEE
 osasci = &FFE3
@@ -92,9 +90,34 @@ ORG &2000
     SKIP 128 * 32
 .heap_end
 .tests
-    LDA #'T'
-    JSR osasci
+    ADDR exp, test_symbol
+    JSR read
+    LDA #&42
+    LDY #0
+    CMP (ret), Y
+    BNE test_throw
+
+    LDA #&C2
+    INY
+    CMP (ret), Y
+    BNE test_throw
+
+    LDA #&C5
+    INY
+    CMP (ret), Y
+    BNE test_throw
+
+    LDA #&C7
+    INY
+    CMP (ret), Y
+    BNE test_throw
+
     RTS
+.test_throw
+    BRK
+    EQUB 0, "Test failed", 0
+.test_symbol
+    EQUB "abcd", 0
 .tests_end
 
 SAVE "Lisp", start, end

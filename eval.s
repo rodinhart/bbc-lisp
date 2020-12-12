@@ -30,7 +30,12 @@
 .eval_symbol
     HEAD tmp, env
 
-    LDY #1
+    LDY #0
+    LDA (tmp), Y
+    CMP (exp), Y
+    BNE eval_symbol_next
+
+    INY
     LDA (tmp), Y
     CMP (exp), Y
     BNE eval_symbol_next
@@ -61,13 +66,36 @@
 
     LDY #1
     LDA (exp), Y
+    LSR A
     STA error_unknownsymbol
-    LDY #2
+    INY
     LDA (exp), Y
+    LSR A
     STA error_unknownsymbol + 1
-    LDY #3
+    INY
     LDA (exp), Y
+    LSR A
     STA error_unknownsymbol + 2
+    
+    LDY #0
+    LDA (exp), Y
+    STA tmp
+    INY
+    LDA (exp), Y
+    LSR A
+    ROR tmp
+    INY
+    LDA (exp), Y
+    LSR A
+    ROR tmp
+    INY
+    LDA (exp), Y
+    LSR A
+    ROR tmp
+    LDA tmp
+    LSR A
+    STA error_unknownsymbol + 3
+
     BRK
     EQUB 0, "Unknown symbol "
 .error_unknownsymbol

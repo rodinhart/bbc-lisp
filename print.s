@@ -75,12 +75,15 @@
 .printSymbol
     LDY #1
     LDA (exp), Y
+    LSR A
     JSR osasci
     INY
     LDA (exp), Y
+    LSR A
     JSR osasci
     INY
     LDA (exp), Y
+    LSR A
     JSR osasci
     RTS
 
