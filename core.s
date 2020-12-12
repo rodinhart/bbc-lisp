@@ -171,7 +171,8 @@ ALIGN 4
 ALIGN 4
 .native_plus ; (fn args (reduce + 0 args))
     LDA #0
-    PHA
+    STA tmp
+    STA tmp + 1
 .native_plus_loop
     LDA #0
     CMP exp
@@ -179,12 +180,17 @@ ALIGN 4
     CMP exp + 1 
     BEQ native_plus_done
 .native_plus_add
-    HEAD tmp, exp
-    PLA
-    LDY #1 
+    HEAD ret, exp
+    LDY #1
+    LDA (ret), Y
     CLC
-    ADC (tmp), Y
-    PHA
+    ADC tmp
+    STA tmp
+    INY
+    LDA (ret), Y
+    ADC tmp + 1
+    STA tmp + 1
+
     TAIL exp, exp
     JMP native_plus_loop
 .native_plus_done
@@ -192,8 +198,11 @@ ALIGN 4
     LDA #6
     LDY #0
     STA (ret), Y
-    PLA
-    LDY #1
+    LDA tmp
+    INY
+    STA (ret), Y
+    LDA tmp + 1
+    INY
     STA (ret), Y
     RTS
 
