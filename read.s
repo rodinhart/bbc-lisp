@@ -12,9 +12,9 @@
     CMP #'('
     BEQ readList_proxy
     CMP #'0'
-    BCC readToken_notnumber
+    BCC readSymbol
     CMP #':'
-    BCS readToken_notnumber
+    BCS readSymbol
 
     LDA #0 ; clear buffer
     STA tmp
@@ -74,81 +74,43 @@
     LDY read_cursor
     RTS
 
-.readToken_notnumber
-    JSR freeAlloc
-    LDA #2
+.readSymbol
+    ADDR tmp, readSymbol_buffer
     LDY #0
-    STA (ret), Y
-
-    ; read first char
-    LDY read_cursor
-    LDA (exp), Y
-    LDY #1
-    ASL A
-    STA (ret), Y
-    INC read_cursor
-
-    ; read second char
-    LDY read_cursor 
-    LDA (exp), Y
-    CMP #33
-    BCC readSymbol_end
-    CMP #')'
-    BEQ readSymbol_end
-    LDY #2
-    ASL A
-    STA (ret), Y
-    INC read_cursor
-
-    ; read third char
-    LDY read_cursor 
-    LDA (exp), Y
-    CMP #33
-    BCC readSymbol_end
-    CMP #')'
-    BEQ readSymbol_end
-    LDY #3
-    ASL A
-    STA (ret), Y
-    INC read_cursor
-
-    ; read fourth char
+    STY readSymbol_buffer + 4
+.readSymbol_loop
     LDY read_cursor
     LDA (exp), Y
     CMP #33
     BCC readSymbol_end
     CMP #')'
     BEQ readSymbol_end
+    INC read_cursor
     
-    ASL A
-    STA tmp
-
-    ASL tmp
-    LDA #0
-    LDY #3
-    ADC (ret), Y
-    STA (ret), Y
-
-    ASL tmp
-    LDA #0
-    DEY
-    ADC (ret), Y
-    STA (ret), Y
-
-    ASL tmp
-    LDA #0
-    DEY
-    ADC (ret), Y
-    STA (ret), Y
-
-    LDA tmp
-    DEY
-    ORA (ret), Y
-    STA (ret), Y
-
+    LDY readSymbol_buffer + 4
+    CPY #4
+    BEQ readSymbol_loop
+    STA (tmp), Y
+    INY
+    STY readSymbol_buffer + 4
+    BNE readSymbol_loop
 .readSymbol_end
+    LDY readSymbol_buffer + 4
+    CPY #4
+    BEQ readSymbol_create
+    LDA #0
+    STA (tmp), Y
+    INC readSymbol_buffer + 4
+    JMP readSymbol_end
+.readSymbol_create
+    PUSH exp
+    MOVE exp, tmp
+    JSR createSymbol
+    PULL exp
     LDY read_cursor
     RTS
+.readSymbol_buffer
+    EQUB "    ", 0
 
 .readWS
     LDY read_cursor

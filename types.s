@@ -34,7 +34,7 @@
 .getType_primbase
     EQUB 5
 
-.createSymbol
+.createSymbol ; ret = createSymbol(exp = "abcd")
     JSR freeAlloc
     LDA #2
     LDY #0
@@ -43,17 +43,17 @@
     LDA (exp), Y
     ASL A
     INY
-    STA (exp), Y
+    STA (ret), Y
 
     LDA (exp), Y
     ASL A
     INY
-    STA (exp), Y
+    STA (ret), Y
 
     LDA (exp), Y
     ASL A
     INY
-    STA (exp), Y
+    STA (ret), Y
 
     LDA (exp), Y
     ASL A

@@ -8,6 +8,7 @@
 ;; add tests
 ;; add *
 ;; refactor symbol decoding (unknown & print)
+;; support (x . y)
 
 oswrch = &FFEE
 osasci = &FFE3

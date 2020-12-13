@@ -2,30 +2,40 @@
     EQUW 0
     EQUW 0
 .coreInit
-    ADDR tmp, coreInit_return
+    ADDR env, coreInit_return
+    ADDR exp, coreKvs
 
+    JSR coreInit_symbol
     JSR coreInit_append
     LDA #0
     LDY #0
-    STA (tmp), Y
+    STA (env), Y
     INY
-    STA (tmp), Y
+    STA (env), Y
 
-    LDX #0
-    JSR coreInit_copy
 .coreInit_loop
-    JSR coreInit_copy
+    LDA #8
+    CLC
+    ADC exp
+    STA exp
+    LDA #0
+    ADC exp + 1
+    STA exp + 1
+
+    LDY #0
+    LDA (exp), Y
+    BEQ coreInit_done
+
+    JSR coreInit_symbol
     JSR coreInit_copy
 
-    LDA coreKvs, X
-    BEQ coreInit_end
     JMP coreInit_loop
-.coreInit_end
+.coreInit_done
     LDA #0 ; terminate list
     LDY #2
-    STA (tmp), Y
+    STA (env), Y
     INY
-    STA (tmp), Y
+    STA (env), Y
 
     LDA coreInit_return + 2
     STA ret
@@ -35,34 +45,47 @@
 
 .coreInit_append
     JSR freeAlloc
-    TAILSET tmp, ret
-    MOVE tmp, ret
+    TAILSET env, ret
+    MOVE env, ret
+    RTS
+
+.coreInit_symbol
+    JSR coreInit_append
+    JSR createSymbol
+    HEADSET env, ret
     RTS
 
 .coreInit_copy
     JSR coreInit_append
     JSR freeAlloc
-    HEADSET tmp, ret
-    LDA coreKvs, X
-    INX
+    HEADSET env, ret
+
+    LDY #4
+    LDA (exp), Y
     LDY #0
     STA (ret), Y
-    LDA coreKvs, X
-    INX
-    INY
+
+    LDY #5
+    LDA (exp), Y
+    LDY #1
     STA (ret), Y
-    LDA coreKvs, X
-    INX
-    INY
+
+    LDY #6
+    LDA (exp), Y
+    LDY #2
     STA (ret), Y
-    LDA coreKvs, X
-    INX
-    INY
+
+    LDY #7
+    LDA (exp), Y
+    LDY #3
     STA (ret), Y
+
     RTS
 
 .coreKvs
     EQUB "nil", 0
+    EQUW 0
+    EQUW 0
 
     EQUB "fn", 0, 0
     EQUW primitiveFn
@@ -76,7 +99,7 @@
     EQUW primitiveIf
     EQUW 2
 
-    EQUB "quot", 0
+    EQUB "quot"
     EQUW primitiveQuote
     EQUW 2
 
@@ -84,12 +107,16 @@
     EQUW native_plus
     EQUW 3
 
-    EQUB "head"
+    EQUB "car", 0
     EQUW native_car
     EQUW 3
 
-    EQUB "tail"
+    EQUB "cdr", 0
     EQUW native_cdr
+    EQUW 3
+
+    EQUB "cons"
+    EQUW native_cons
     EQUW 3
 
     EQUB 0
@@ -216,4 +243,14 @@ ALIGN 4
 .native_cdr ; (fn (pair) (cdr pair))
     HEAD tmp, exp
     TAIL ret, tmp
+    RTS
+
+ALIGN 4
+.native_cons ; (fn (x y) (cons x y))
+    JSR freeAlloc
+    HEAD tmp, exp
+    HEADSET ret, tmp
+    TAIL tmp, exp
+    HEAD exp, tmp
+    TAILSET ret, exp
     RTS

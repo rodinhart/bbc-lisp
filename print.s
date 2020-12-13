@@ -77,6 +77,7 @@
     LDA (exp), Y
     LSR A
     JSR osasci
+
     INY
     LDA (exp), Y
     LSR A
@@ -85,6 +86,26 @@
     LDA (exp), Y
     LSR A
     JSR osasci
+
+    LDY #0
+    LDA (exp), Y
+    STA tmp
+    INY
+    LDA (exp), Y
+    LSR A
+    ROR tmp
+    INY
+    LDA (exp), Y
+    LSR A
+    ROR tmp
+    INY
+    LDA (exp), Y
+    LSR A
+    ROR tmp
+    LDA tmp
+    LSR A
+    JSR osasci
+
     RTS
 
 .printNumber
