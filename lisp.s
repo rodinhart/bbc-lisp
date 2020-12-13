@@ -1,5 +1,6 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
+;; only GC when needed
 ;; make all label verbNoun_sublabel
 ;; macro for init cells?
 ;; ZERO exp ?
@@ -58,8 +59,6 @@ ORG &2000
     JSR print
     JSR osnewl
 
-    JSR freeGC
-
     MOVE exp, sourceReg
     LDY #0
     LDA #0
@@ -88,7 +87,7 @@ ORG &2000
 .stack_high
     SKIP 256
 .heap_start
-    SKIP 128 * 32
+    SKIP 255 * 32
 .heap_end
 .tests
     ADDR exp, test_symbol

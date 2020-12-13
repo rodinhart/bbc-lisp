@@ -8,6 +8,6 @@
   )
 ))
 
-(zip + (quote (1 2 3)) (quote (4 5 6)))
+(zip + (quote (1 2 3 1 2 3 1 2 3)) (quote (1 2 1 2 1 2 1 2 1)))
 
 nil
