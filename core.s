@@ -107,6 +107,14 @@
     EQUW native_plus
     EQUW 3
 
+    EQUB "-", 0, 0, 0
+    EQUW nativeSub
+    EQUW 3
+
+    EQUB "=", 0, 0, 0
+    EQUW nativeEq
+    EQUW 3
+
     EQUB "car", 0
     EQUW native_car
     EQUW 3
@@ -233,6 +241,69 @@ ALIGN 4
     LDA tmp + 1
     INY
     STA (ret), Y
+    RTS
+
+ALIGN 4
+.nativeSub
+    HEAD ret, exp
+    LDY #1 ; tmp = ret
+    LDA (ret), Y
+    STA tmp
+    INY
+    LDA (ret), Y
+    STA tmp + 1
+.nativeSub_loop
+    TAIL exp, exp
+    LDA #0
+    CMP exp
+    BNE nativeSub_cont
+    CMP exp + 1
+    BEQ nativeSub_done
+.nativeSub_cont
+    HEAD ret, exp
+    LDA tmp ; tmp = tmp - ret
+    LDY #1
+    SEC
+    SBC (ret), Y
+    STA tmp
+    LDA tmp + 1
+    INY
+    SBC (ret), Y
+    STA tmp + 1
+
+    JMP nativeSub_loop
+.nativeSub_done
+    JSR freeAlloc
+    LDA #6
+    LDY #0
+    STA (ret), Y
+    LDA tmp
+    INY
+    STA (ret), Y
+    LDA tmp + 1
+    INY
+    STA (ret), y
+    RTS
+
+ALIGN 4
+.nativeEq
+    HEAD tmp, exp
+    TAIL exp, exp
+    HEAD ret, exp
+    LDY #1
+    LDA (tmp), Y
+    CMP (ret), Y
+    BNE nativeEq_noteq
+    INY
+    LDA (tmp), Y
+    CMP (ret), Y
+    BNE nativeEq_noteq
+
+    RTS
+.nativeEq_noteq
+    LDA #0
+    STA ret
+    STA ret + 1
     RTS
 
 ALIGN 4

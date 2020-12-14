@@ -14,6 +14,15 @@
       (fn () (zip f (rest xs) (rest ys))))
     nil)))
 
-(def s (seq 1 (fn () (seq 1 (fn () (seq 2 (fn () nil)))))))
+(def take (fn (n xs)
+  (if (= n 0)
+    nil
+    (if xs
+      (seq
+        (first xs)
+        (fn () (take (- n 1) (rest xs))))
+      nil))))
 
-(reify (zip + s s))
+(def s (seq 1 (fn () (seq 1 (fn () (zip + s (rest s)))))))
+
+(reify (take 5 s))
