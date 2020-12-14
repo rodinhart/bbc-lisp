@@ -1,7 +1,5 @@
 .free_heap
     EQUW heap_start
-.free_size
-    EQUB (heap_end - heap_start) DIV 32
 
 .freeAlloc
     LDA #0
@@ -27,13 +25,10 @@
     EQUB 0, "Out of memory", 0
 
 .freeCollect
-    TXA
-    PHA
     LDA #0
     STA frl
     STA frl + 1
     MOVE tmp, free_heap
-    LDX free_size
 .freeCollect_loop
     LDY #0
     LDA (tmp), Y
@@ -43,17 +38,21 @@
     TAILSET tmp, frl
     MOVE frl, tmp
 .freeCollect_next
-    LDA #32
+    LDA #32 ; advance tmp to the next cell
     CLC
     ADC tmp
     STA tmp
     LDA #0
     ADC tmp + 1
     STA tmp + 1
-    DEX
-    BNE freeCollect_loop
-    PLA
-    TAX
+
+    LDA tmp ; compare with end of heap
+    SEC
+    SBC #LO(heap_end)
+    LDA tmp + 1
+    SBC #HI(heap_end)
+    BCC freeCollect_loop
+
     RTS
 .freeCollect_skip
     AND #&FE ; clear mark
@@ -82,20 +81,25 @@
 
 .freeInit
     LDY #0
-    MOVE exp, free_heap
-    LDX free_size
+    MOVE exp, free_heap ; change to tmp?
 .freeInit_loop
     LDA #0 ; clear marked
     STA (exp), Y
-    LDA #32
+
+    LDA #32 ; advance exp to next cell
     CLC
     ADC exp
     STA exp
     LDA #0
     ADC exp + 1
     STA exp + 1
-    DEX
-    BNE freeInit_loop
+
+    LDA exp
+    SEC
+    SBC #LO(heap_end)
+    LDA exp + 1
+    SBC #HI(heap_end)
+    BCC freeInit_loop
 
     JMP freeCollect
 
@@ -179,7 +183,10 @@
     JSR printString
     MOVE exp, frl
     JSR freeCount
-    JSR printDecimal
+     LDA ret + 1
+     JSR printByte
+     LDA ret
+     JSR printByte
 
     LDA #',' ; print stack
     JSR osasci
@@ -193,20 +200,26 @@
 .freeReport_label
     EQUS "Free ", 0
 
-.freeCount_res
-    EQUB 0
-.freeCount ; A = count(exp)
+.freeCount ; ret = count(exp)
     LDA #0
-    STA freeCount_res
+    STA ret
+    STA ret + 1
 .freeCount_loop
     LDA #0
     CMP exp
     BNE freeCount_next
     CMP exp + 1
     BNE freeCount_next
-    LDA freeCount_res
+
     RTS
 .freeCount_next
-    INC freeCount_res
+    LDA #1
+    CLC
+    ADC ret
+    STA ret
+    LDA #0
+    ADC ret + 1
+    STA ret + 1
+
     TAIL exp, exp
     JMP freeCount_loop

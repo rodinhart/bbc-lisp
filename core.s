@@ -167,7 +167,9 @@ ALIGN 4
     INY
     STA (ret), Y
     TAIL ret, ret
-    RTS ; return name
+
+    MOVE ret, exp
+    RTS
 
 ALIGN 4
 .primitiveIf ; (macro (pred cons alt) (if pred cons alt))

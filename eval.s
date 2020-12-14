@@ -2,9 +2,9 @@
     PUSH exp
     PUSH env
     MOVE exp, frl
-    JSR freeCount
-    CMP #8
-    BCS eval_nogc
+     ;JSR freeCount
+     ;CMP #8
+     ;BCS eval_nogc
     JSR freeGC
 .eval_nogc
     PULL env

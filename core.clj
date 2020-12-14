@@ -1,13 +1,19 @@
+(def seq (fn (x y) (cons x y)))
+(def first (fn (p) (car p)))
+(def rest (fn (p) ((cdr p))))
+
+(def reify (fn (xs)
+  (if xs
+    (cons (first xs) (reify (rest xs)))
+    nil)))
+
 (def zip (fn (f xs ys)
   (if xs
-    (cons
-      (f (car xs) (car ys))
-      (zip f (cdr xs) (cdr ys))
-    )
-    nil
-  )
-))
+    (seq
+      (f (first xs) (first ys))
+      (fn () (zip f (rest xs) (rest ys))))
+    nil)))
 
-(zip + (quote (1 2 3 1 2 3 1 2 3)) (quote (1 2 1 2 1 2 1 2 1)))
+(def s (seq 1 (fn () (seq 1 (fn () (seq 2 (fn () nil)))))))
 
-nil
+(reify (zip + s s))

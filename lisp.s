@@ -87,7 +87,7 @@ ORG &2000
 .stack_high
     SKIP 256
 .heap_start
-    SKIP 255 * 32
+    SKIPTO &7C00
 .heap_end
 .tests
     ADDR exp, test_symbol
