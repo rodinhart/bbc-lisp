@@ -59,6 +59,22 @@
     STA (tmp), Y
     JMP freeCollect_next
 
+.freeEnsure
+    LDA #256 - 8
+    STA ret
+    MOVE tmp, frl
+.freeEnsure_loop
+    LDA #0
+    CMP tmp
+    BNE freeEnsure_next
+    CMP tmp + 1
+    BEQ freeGC
+.freeEnsure_next
+    TAIL tmp, tmp
+    INC ret
+    BNE freeEnsure_loop
+    RTS
+
 .freeGC_sp
     EQUB 0
 .freeGC

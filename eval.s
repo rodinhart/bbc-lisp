@@ -1,15 +1,9 @@
 .eval
-    PUSH exp
+    PUSH exp ; only need if doing GC
     PUSH env
-    MOVE exp, frl
-     ;JSR freeCount
-     ;CMP #8
-     ;BCS eval_nogc
-    JSR freeGC
-.eval_nogc
+    JSR freeEnsure
     PULL env
     PULL exp
-
     JSR getType
     LDA eval_jumphigh, Y
     PHA
