@@ -26,42 +26,76 @@
     JSR osasci
     RTS
 
-.printDecimal_buffer
-    EQUS "   "
-.printDecimal ; print A
-    LDY #0
-    STY printDecimal_buffer
-    STY printDecimal_buffer + 1
-    STY printDecimal_buffer + 2
-.printDecimal_loop
-    CMP #10
-    BCC printDecimal_next
-    SBC #10
-    INY
-    JMP printDecimal_loop
-.printDecimal_next
-    PHA
-    LDA printDecimal_buffer + 1
-    STA printDecimal_buffer + 2
-    LDA printDecimal_buffer
-    STA printDecimal_buffer + 1
-    PLA
-    CLC
-    ADC print_0
-    STA printDecimal_buffer
-    TYA
-    LDY #0
+.printDecimal ; print exp
+    LDA #0
+    STA printDecimal_trailing
 
-    CMP #0
-    BNE printDecimal_loop
-.printDecimal_print
-    LDA printDecimal_buffer
-    JSR osasci
-    LDA printDecimal_buffer + 1
-    JSR osasci
-    LDA printDecimal_buffer + 2
+    LDA #LO(10000)
+    STA tmp
+    LDA #HI(10000)
+    STA tmp + 1
+    JSR printDecimal_digit
+
+    LDA #LO(1000)
+    STA tmp
+    LDA #HI(1000)
+    STA tmp + 1
+    JSR printDecimal_digit
+
+    LDA #LO(100)
+    STA tmp
+    LDA #HI(100)
+    STA tmp + 1
+    JSR printDecimal_digit
+
+    LDA #LO(10)
+    STA tmp
+    LDA #HI(10)
+    STA tmp + 1
+    JSR printDecimal_digit
+
+    LDA ret
+    CLC
+    ADC #'0'
     JSR osasci
     RTS
+.printDecimal_trailing
+    EQUB 0
+.printDecimal_digit
+    LDY #0
+.printDecimal_loop
+    LDA ret
+    SEC
+    SBC tmp
+    STA ret
+    LDA ret + 1
+    SBC tmp + 1
+    STA ret + 1
+    INY
+    BCS printDecimal_loop
+    
+    DEY
+    LDA ret
+    CLC
+    ADC tmp
+    STA ret
+    LDA ret + 1
+    ADC tmp + 1
+    STA ret + 1
+
+    TYA
+    BEQ printDecimal_trail
+
+    CLC
+    ADC #'0'
+    JSR osasci
+    LDA #'0'
+    STA printDecimal_trailing
+    RTS
+.printDecimal_trail
+    LDA printDecimal_trailing
+    JMP osasci
+
 
 .printString ; exp = "hello world"
     LDY #0

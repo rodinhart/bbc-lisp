@@ -183,17 +183,15 @@
     JSR printString
     MOVE exp, frl
     JSR freeCount
-     LDA ret + 1
-     JSR printByte
-     LDA ret
-     JSR printByte
+     MOVE exp, ret
+     JSR printDecimal
 
     LDA #',' ; print stack
     JSR osasci
     LDA #' '
     JSR osasci
     TXA
-    JSR printDecimal
+    JSR printByte
 
     JSR osnewl
     RTS
