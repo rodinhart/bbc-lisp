@@ -1,6 +1,3 @@
-.print_0
-    EQUB '0'
-    EQUB 15
 .printByte
     PHA
     LSR A
@@ -12,7 +9,7 @@
     JSR osasci
 
     PLA
-    AND print_0 + 1
+    AND #15
     TAY
     LDA printByte_chars, Y
     JMP osasci

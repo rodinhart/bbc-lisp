@@ -25,4 +25,4 @@
 
 (def s (seq 1 (fn () (seq 1 (fn () (zip + s (rest s)))))))
 
-(reify (take 5 s))
+(reify (take 4 s))

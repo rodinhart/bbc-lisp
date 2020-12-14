@@ -42,7 +42,7 @@
     LDY read_cursor
     LDA (exp), Y
     SEC
-    SBC print_0
+    SBC #'0'
     CLC
     ADC tmp
     STA tmp
