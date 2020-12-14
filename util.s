@@ -7,24 +7,17 @@
     LSR A
     LSR A
     LSR A
-    CMP #10
-    BCC printByte_dec
-    CLC
-    ADC #6 ; use lookup?
-.printByte_dec
-    ADC print_0
+    TAY
+    LDA printByte_chars, Y
     JSR osasci
+
     PLA
     AND print_0 + 1
-    CMP #10
-    BCC printByte_second
-    CLC
-    ADC #6
-.printByte_second
-    CLC
-    ADC print_0
-    JSR osasci
-    RTS
+    TAY
+    LDA printByte_chars, Y
+    JMP osasci
+.printByte_chars
+    EQUS "0123456789ABCDEF"
 
 .printDecimal ; print exp
     LDA #0
