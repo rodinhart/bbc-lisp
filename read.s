@@ -1,7 +1,5 @@
 .readList_proxy
     JMP readList
-.read_cursor
-    EQUB 0
 .read ; ret = read(exp)
     LDY #0
     STY read_cursor
@@ -140,11 +138,6 @@
 .readList_end
     INC read_cursor ; skip ')'
     PULL tmp
-    LDY #2
-    LDA (tmp), Y
-    STA ret
-    LDY #3
-    LDA (tmp), Y
-    STA ret + 1
+    TAIL ret, tmp
     LDY read_cursor
     RTS

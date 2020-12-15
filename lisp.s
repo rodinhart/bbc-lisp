@@ -20,6 +20,8 @@ env = &74
 tmp = &76
 frl = &78
 
+read_cursor = &7F
+
 INCLUDE "macros.s"
 
 ORG &1908
