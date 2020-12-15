@@ -218,7 +218,7 @@ ALIGN 4
     BEQ native_plus_done
 .native_plus_add
     HEAD ret, exp
-    LDY #1
+    LDY #1 ; tmp += ret
     LDA (ret), Y
     CLC
     ADC tmp
@@ -231,17 +231,7 @@ ALIGN 4
     TAIL exp, exp
     JMP native_plus_loop
 .native_plus_done
-    JSR freeAlloc
-    LDA #6
-    LDY #0
-    STA (ret), Y
-    LDA tmp
-    INY
-    STA (ret), Y
-    LDA tmp + 1
-    INY
-    STA (ret), Y
-    RTS
+    JMP createNumber
 
 ALIGN 4
 .nativeSub
@@ -273,17 +263,7 @@ ALIGN 4
 
     JMP nativeSub_loop
 .nativeSub_done
-    JSR freeAlloc
-    LDA #6
-    LDY #0
-    STA (ret), Y
-    LDA tmp
-    INY
-    STA (ret), Y
-    LDA tmp + 1
-    INY
-    STA (ret), y
-    RTS
+    JMP createNumber
 
 ALIGN 4
 .nativeEq

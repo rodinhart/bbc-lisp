@@ -39,7 +39,7 @@
     ASL tmp ; (x4 + 1)x2
     ROL tmp + 1
 
-    LDY read_cursor
+    LDY read_cursor ; add digit to tmp
     LDA (exp), Y
     SEC
     SBC #'0'
@@ -58,19 +58,7 @@
     CMP #':'
     BCC readNumber_loop
 .readNumber_end
-    JSR freeAlloc
-    LDA #6 ; refactor create_number
-    LDY #0
-    STA (ret), Y
-    LDA tmp
-    INY
-    STA (ret), Y
-    LDA tmp + 1
-    INY
-    STA (ret), Y
-    LDA #0
-    INY
-    STA (ret), Y
+    JSR createNumber
     LDY read_cursor
     RTS
 

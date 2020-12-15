@@ -1,5 +1,20 @@
 # bbc-lisp
 
+A lisp for the BBC Nicro implemented in assembly. It aims to have the following features:
+
+- proper tail calls (_done_)
+- simple mark-and-sweep garbage collection (_done_)
+- macros
+- procedures for talking to the OS
+
+## obvious short commings
+
+- No proper error handling
+- Interpreted, so not particularly fast
+- No string type
+
+## memory management
+
 A cell in the box-pointer model is 32 bits, with the following flavours:
 
 | M = marked by GC                      | type      | description                                       |
