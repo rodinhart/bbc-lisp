@@ -1,9 +1,14 @@
-.eval
-    PUSH exp ; only need if doing GC
+.eval_gc
+    PUSH exp
     PUSH env
-    JSR freeEnsure
+    JSR freeGC
     PULL env
     PULL exp
+    JMP eval_gcdone
+.eval
+    JSR freeEnsure
+    BCS eval_gc
+.eval_gcdone    
     JSR getType
     LDA eval_jumphigh, Y
     PHA

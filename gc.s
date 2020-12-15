@@ -60,7 +60,7 @@
     JMP freeCollect_next
 
 .freeEnsure
-    LDA #256 - 8
+    LDA #256 - 16
     STA ret
     MOVE tmp, frl
 .freeEnsure_loop
@@ -68,11 +68,15 @@
     CMP tmp
     BNE freeEnsure_next
     CMP tmp + 1
-    BEQ freeGC
+    BEQ freeEnsure_gc
 .freeEnsure_next
     TAIL tmp, tmp
     INC ret
     BNE freeEnsure_loop
+    CLC
+    RTS
+.freeEnsure_gc
+    SEC
     RTS
 
 .freeGC_sp
@@ -88,7 +92,7 @@
     STA exp + 1
     JSR freeMark
 
-    LDY freeGC_sp
+    LDY freeGC_sp ; INC freeGC_sp
     INY
     STY freeGC_sp
     JMP freeGC_loop
