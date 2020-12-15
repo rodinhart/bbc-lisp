@@ -1,15 +1,14 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
-;; only GC when needed
 ;; make all label verbNoun_sublabel
 ;; macro for init cells?
 ;; ZERO exp ?
 ;; cons macro?
 ;; use zero page for temp stuff (like read number)
-;; add tests
 ;; add *
 ;; refactor symbol decoding (unknown & print)
 ;; support (x . y)
+;; work out biggest chunk of cells needed in single eval
 
 oswrch = &FFEE
 osasci = &FFE3
@@ -23,7 +22,7 @@ frl = &78
 
 INCLUDE "macros.s"
 
-ORG &2000
+ORG &1908
 
 .start
     JSR freeInit

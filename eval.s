@@ -7,7 +7,8 @@
     JMP eval_gcdone
 .eval
     JSR freeEnsure
-    BCS eval_gc
+     ;JMP eval_gc
+     BCS eval_gc
 .eval_gcdone    
     JSR getType
     LDA eval_jumphigh, Y
@@ -130,7 +131,7 @@
     PULL tmp
     TAIL exp, tmp
     PLA
-    CMP #3
+    CMP #3 ; macro
     BNE eval_cons_apply
     HEAD tmp, ret
     JMP (tmp)

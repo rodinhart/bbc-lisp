@@ -24,6 +24,7 @@
     BRK
     EQUB 0, "Out of memory", 0
 
+
 .freeCollect
     LDA #0
     STA frl
@@ -59,6 +60,7 @@
     STA (tmp), Y
     JMP freeCollect_next
 
+
 .freeEnsure
     LDA #256 - 16
     STA ret
@@ -79,6 +81,7 @@
     SEC
     RTS
 
+
 .freeGC_sp
     EQUB 0
 .freeGC
@@ -98,6 +101,7 @@
     JMP freeGC_loop
 .freeGC_end
     JMP freeCollect
+
 
 .freeInit
     LDY #0
@@ -122,6 +126,7 @@
     BCC freeInit_loop
 
     JMP freeCollect
+
 
 .freeMark_mask
     EQUB 1
@@ -197,6 +202,7 @@
     ORA (exp), Y
     STA (exp), Y
     RTS
+
 
 .freeReport
     ADDR exp, freeReport_label

@@ -1,5 +1,5 @@
-(def seq (fn (x y) (cons x y)))
-(def first (fn (p) (car p)))
+(def seq cons)
+(def first car)
 (def rest (fn (p) ((cdr p))))
 
 (def reify (fn (xs)
@@ -25,4 +25,4 @@
 
 (def s (seq 1 (fn () (seq 1 (fn () (zip + s (rest s)))))))
 
-(reify (take 6 s))
+(reify (take 7 s))
