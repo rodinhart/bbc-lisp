@@ -61,7 +61,7 @@
     JMP freeCollect_next
 
 
-.freeEnsure
+.freeEnsure ; C = freeEnsure, corrupts ret, tmp
     LDA #256 - 16
     STA ret
     MOVE tmp, frl
@@ -95,9 +95,7 @@
     STA exp + 1
     JSR freeMark
 
-    LDY freeGC_sp ; INC freeGC_sp
-    INY
-    STY freeGC_sp
+    INC freeGC_sp
     JMP freeGC_loop
 .freeGC_end
     JMP freeCollect
@@ -219,8 +217,7 @@
     TXA
     JSR printByte
 
-    JSR osnewl
-    RTS
+    JMP osnewl
 .freeReport_label
     EQUS "Free ", 0
 

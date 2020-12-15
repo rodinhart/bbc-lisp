@@ -9,6 +9,7 @@
 ;; refactor symbol decoding (unknown & print)
 ;; support (x . y)
 ;; work out biggest chunk of cells needed in single eval
+;; change macros to subroutines
 
 oswrch = &FFEE
 osasci = &FFE3

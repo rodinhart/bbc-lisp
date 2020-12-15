@@ -7,7 +7,6 @@
     JMP eval_gcdone
 .eval
     JSR freeEnsure
-     ;JMP eval_gc
      BCS eval_gc
 .eval_gcdone    
     JSR getType
@@ -75,43 +74,10 @@
     CMP env + 1
     BNE eval_symbol
 
-    LDY #1
-    LDA (exp), Y
-    LSR A
-    STA error_unknownsymbol
-    INY
-    LDA (exp), Y
-    LSR A
-    STA error_unknownsymbol + 1
-    INY
-    LDA (exp), Y
-    LSR A
-    STA error_unknownsymbol + 2
-    
-    LDY #0
-    LDA (exp), Y
-    STA tmp
-    INY
-    LDA (exp), Y
-    LSR A
-    ROR tmp
-    INY
-    LDA (exp), Y
-    LSR A
-    ROR tmp
-    INY
-    LDA (exp), Y
-    LSR A
-    ROR tmp
-    LDA tmp
-    LSR A
-    STA error_unknownsymbol + 3
-
+    JSR osnewl
+    JSR print
     BRK
-    EQUB 0, "Unknown symbol "
-.error_unknownsymbol
-    EQUD 0
-    EQUB 0
+    EQUB 0, "Unknown symbol", 0
 
     LDA #0 ; return nil
     STA ret
