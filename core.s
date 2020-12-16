@@ -127,6 +127,10 @@
     EQUW native_cons
     EQUW 3
 
+    EQUB "prn", 0
+    EQUW native_prn
+    EQUW 3
+
     EQUB 0
 
 ALIGN 4
@@ -306,4 +310,14 @@ ALIGN 4
     TAIL tmp, exp
     HEAD exp, tmp
     TAILSET ret, exp
+    RTS
+
+ALIGN 4
+.native_prn ; (fn (v) (prn v))
+    HEAD exp, exp
+    JSR print
+    JSR osnewl
+    LDA #0
+    STA ret
+    STA ret + 1
     RTS

@@ -1,28 +1,20 @@
-(def seq cons)
-(def first car)
 (def rest (fn (p) ((cdr p))))
 
-(def reify (fn (xs)
+(def fold (fn (step init xs)
   (if xs
-    (cons (first xs) (reify (rest xs)))
-    nil)))
-
-(def zip (fn (f xs ys)
-  (if xs
-    (seq
-      (f (first xs) (first ys))
-      (fn () (zip f (rest xs) (rest ys))))
-    nil)))
+    (fold step (step init (car xs)) (rest xs))
+    init)))
 
 (def take (fn (n xs)
   (if (= n 0)
     nil
-    (if xs
-      (seq
-        (first xs)
-        (fn () (take (- n 1) (rest xs))))
-      nil))))
+    (cons (car xs) (fn () (take (- n 1) (rest xs)))))))
 
-(def s (seq 1 (fn () (seq 1 (fn () (zip + s (rest s)))))))
+(def zip (fn (f xs ys)
+  (cons
+    (f (car xs) (car ys))
+    (fn () (zip f (rest xs) (rest ys))))))
 
-(reify (take 5 s))
+(def s (fn (a b) (cons a (fn () (s b (+ a b))))))
+
+(fold (fn (_ x) (prn x)) nil (take 20 (s 1 1)))
