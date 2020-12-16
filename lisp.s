@@ -10,6 +10,7 @@
 ;; support (x . y)
 ;; work out biggest chunk of cells needed in single eval
 ;; change macros to subroutines
+;; use car, cadr etc?
 
 oswrch = &FFEE
 osasci = &FFE3

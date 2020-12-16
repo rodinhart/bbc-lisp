@@ -87,7 +87,7 @@
 .eval_cons
     PUSH exp
     PUSH env
-    HEAD exp, exp
+    JSR head
     JSR eval
     MOVE exp, ret
     JSR getType
@@ -138,7 +138,7 @@
 
     HEAD ret, exp ; (3 . env)
     HEADSET env, ret
-    TAIL exp, exp
+    JSR tail
 
     JSR freeAlloc ; (_ 3 . env)
     TAILSET ret, env
@@ -151,8 +151,8 @@
     JMP eval_cons_loop
 .evalProc_done
     PULL exp
-    TAIL exp, exp
-    HEAD exp, exp
+    JSR tail
+    JSR head
     JMP eval
 
 .evalMap ; (fn (exp) (if (nil? exp) nil (cons (eval (car exp)) (evalMap (cdr exp)))))
@@ -167,7 +167,7 @@
 .evalMap_map
     PUSH exp
     PUSH env
-    HEAD exp, exp
+    JSR head
     JSR eval
     PULL env
     PULL tmp

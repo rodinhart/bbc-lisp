@@ -17,4 +17,4 @@
 
 (def s (fn (a b) (cons a (fn () (s b (+ a b))))))
 
-(fold (fn (_ x) (prn x)) nil (take 20 (s 1 1)))
+(fold (fn (_ x) (prn x)) nil (take 10 (s 1 1)))

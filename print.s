@@ -41,7 +41,7 @@
 
     PUSH exp
 
-    HEAD exp, exp
+    JSR head
     JSR print
 
     PULL tmp

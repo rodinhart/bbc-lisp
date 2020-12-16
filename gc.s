@@ -242,5 +242,5 @@
     ADC ret + 1
     STA ret + 1
 
-    TAIL exp, exp
+    JSR tail
     JMP freeCount_loop

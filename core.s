@@ -148,8 +148,8 @@ ALIGN 4
 .primitiveDef ; (macro (name value) (def name value))
     PUSH exp
     PUSH env
-    TAIL exp, exp
-    HEAD exp, exp
+    JSR tail
+    JSR head
     JSR eval
     PULL env
     PULL exp
@@ -165,7 +165,7 @@ ALIGN 4
 
     MOVE tmp, ret
     JSR freeAlloc
-    HEAD exp, exp
+    JSR head
     HEADSET ret, exp
     TAILSET env, ret
     MOVE env, ret
@@ -187,21 +187,21 @@ ALIGN 4
 .primitiveIf ; (macro (pred cons alt) (if pred cons alt))
     PUSH exp
     PUSH env
-    HEAD exp, exp ; get pred
+    JSR head ; get pred
     JSR eval
     PULL env
     PULL exp
-    TAIL exp, exp ; get (cons alt)
+    JSR tail ; get (cons alt)
     LDA #0
     CMP ret
     BEQ primitiveIf_maybealt
 .primitiveIf_eval
-    HEAD exp, exp
+    JSR head
     JMP eval
 .primitiveIf_maybealt
     CMP ret + 1
     BNE primitiveIf_eval
-    TAIL exp, exp
+    JSR tail
     JMP primitiveIf_eval
 
 ALIGN 4
@@ -232,7 +232,7 @@ ALIGN 4
     ADC tmp + 1
     STA tmp + 1
 
-    TAIL exp, exp
+    JSR tail
     JMP native_plus_loop
 .native_plus_done
     JMP createNumber
@@ -247,7 +247,7 @@ ALIGN 4
     LDA (ret), Y
     STA tmp + 1
 .nativeSub_loop
-    TAIL exp, exp
+    JSR tail
     LDA #0
     CMP exp
     BNE nativeSub_cont
@@ -272,7 +272,7 @@ ALIGN 4
 ALIGN 4
 .nativeEq
     HEAD tmp, exp
-    TAIL exp, exp
+    JSR tail
     HEAD ret, exp
     LDY #1
     LDA (tmp), Y
@@ -314,7 +314,7 @@ ALIGN 4
 
 ALIGN 4
 .native_prn ; (fn (v) (prn v))
-    HEAD exp, exp
+    JSR head
     JSR print
     JSR osnewl
     LDA #0

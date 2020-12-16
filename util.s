@@ -1,3 +1,11 @@
+.head ; exp = head(exp)
+    HEAD exp, exp
+    RTS
+    
+.tail ; exp = tail(exp)
+    TAIL exp, exp
+    RTS
+
 .printByte
     PHA
     LSR A
