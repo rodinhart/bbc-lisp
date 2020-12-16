@@ -1,13 +1,14 @@
 .eval_gc
-    PUSH exp
     PUSH env
     JSR freeGC
     PULL env
     PULL exp
     JMP eval_gcdone
 .eval
+    PUSH exp
     JSR freeEnsure
-     BCS eval_gc
+    BCS eval_gc
+    PULL exp
 .eval_gcdone    
     JSR getType
     LDA eval_jumphigh, Y
@@ -94,8 +95,8 @@
     TYA
     PHA
     PULL env
-    PULL tmp
-    TAIL exp, tmp
+    PULL exp
+    JSR tail
     PLA
     CMP #3 ; macro
     BNE eval_cons_apply
@@ -170,9 +171,9 @@
     JSR head
     JSR eval
     PULL env
-    PULL tmp
+    PULL exp
     PUSH ret
-    TAIL exp, tmp
+    JSR tail
     JSR evalMap
     PUSH ret
     JSR freeAlloc

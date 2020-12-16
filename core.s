@@ -148,7 +148,7 @@ ALIGN 4
 .primitiveDef ; (macro (name value) (def name value))
     PUSH exp
     PUSH env
-    JSR tail
+    JSR tail ; get value expr
     JSR head
     JSR eval
     PULL env
@@ -165,7 +165,7 @@ ALIGN 4
 
     MOVE tmp, ret
     JSR freeAlloc
-    JSR head
+    JSR head ; get name
     HEADSET ret, exp
     TAILSET env, ret
     MOVE env, ret
@@ -206,14 +206,15 @@ ALIGN 4
 
 ALIGN 4
 .primitiveQuote ; (macro (value) (quote value))
-    HEAD ret, exp
+    JSR head
+    MOVE ret, exp
     RTS
 
 ALIGN 4
 .native_plus ; (fn args (reduce + 0 args))
     LDA #0
-    STA tmp
-    STA tmp + 1
+    STA ret
+    STA ret + 1
 .native_plus_loop
     LDA #0
     CMP exp
@@ -221,31 +222,32 @@ ALIGN 4
     CMP exp + 1 
     BEQ native_plus_done
 .native_plus_add
-    HEAD ret, exp
-    LDY #1 ; tmp += ret
-    LDA (ret), Y
+    JSR headTmp
+    LDY #1 ; ret += tmp
+    LDA (tmp), Y
     CLC
-    ADC tmp
-    STA tmp
+    ADC ret
+    STA ret
     INY
-    LDA (ret), Y
-    ADC tmp + 1
-    STA tmp + 1
+    LDA (tmp), Y
+    ADC ret + 1
+    STA ret + 1
 
     JSR tail
     JMP native_plus_loop
 .native_plus_done
+    MOVE tmp, ret
     JMP createNumber
 
 ALIGN 4
 .nativeSub
-    HEAD ret, exp
-    LDY #1 ; tmp = ret
-    LDA (ret), Y
-    STA tmp
+    JSR headTmp
+    LDY #1 ; ret = [tmp]
+    LDA (tmp), Y
+    STA ret
     INY
-    LDA (ret), Y
-    STA tmp + 1
+    LDA (tmp), Y
+    STA ret + 1
 .nativeSub_loop
     JSR tail
     LDA #0
@@ -254,26 +256,28 @@ ALIGN 4
     CMP exp + 1
     BEQ nativeSub_done
 .nativeSub_cont
-    HEAD ret, exp
-    LDA tmp ; tmp = tmp - ret
+    JSR headTmp
+    LDA ret ; ret -= tmp
     LDY #1
     SEC
-    SBC (ret), Y
-    STA tmp
-    LDA tmp + 1
+    SBC (tmp), Y
+    STA ret
+    LDA ret + 1
     INY
-    SBC (ret), Y
-    STA tmp + 1
+    SBC (tmp), Y
+    STA ret + 1
 
     JMP nativeSub_loop
 .nativeSub_done
+    MOVE tmp, ret
     JMP createNumber
 
 ALIGN 4
 .nativeEq
-    HEAD tmp, exp
+    JSR headTmp
+    MOVE ret, tmp
     JSR tail
-    HEAD ret, exp
+    JSR headTmp
     LDY #1
     LDA (tmp), Y
     CMP (ret), Y
@@ -292,23 +296,27 @@ ALIGN 4
 
 ALIGN 4
 .native_car ; (fn (pair) (car pair))
-    HEAD tmp, exp
-    HEAD ret, tmp
+    JSR head
+    JSR headTmp
+    MOVE ret, tmp
     RTS
 
 ALIGN 4
 .native_cdr ; (fn (pair) (cdr pair))
-    HEAD tmp, exp
-    TAIL ret, tmp
+    JSR head
+    JSR tail
+    MOVE ret, exp
     RTS
 
 ALIGN 4
 .native_cons ; (fn (x y) (cons x y))
     JSR freeAlloc
-    HEAD tmp, exp
-    HEADSET ret, tmp
-    TAIL tmp, exp
-    HEAD exp, tmp
+    MOVE tmp, exp
+    JSR head
+    HEADSET ret, exp
+    MOVE exp, tmp
+    JSR tail
+    JSR head
     TAILSET ret, exp
     RTS
 

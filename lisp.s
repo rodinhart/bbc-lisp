@@ -11,6 +11,7 @@
 ;; work out biggest chunk of cells needed in single eval
 ;; change macros to subroutines
 ;; use car, cadr etc?
+;; head and tail to mask out lower 2 bits? (see gc mark)
 
 oswrch = &FFEE
 osasci = &FFE3

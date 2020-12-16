@@ -1,7 +1,11 @@
 .head ; exp = head(exp)
     HEAD exp, exp
     RTS
-    
+
+.headTmp ; tmp = head(exp)
+    HEAD tmp, exp
+    RTS
+
 .tail ; exp = tail(exp)
     TAIL exp, exp
     RTS

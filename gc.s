@@ -64,15 +64,15 @@
 .freeEnsure ; C = freeEnsure, corrupts ret, tmp
     LDA #256 - 16
     STA ret
-    MOVE tmp, frl
+    MOVE exp, frl
 .freeEnsure_loop
     LDA #0
-    CMP tmp
+    CMP exp
     BNE freeEnsure_next
-    CMP tmp + 1
+    CMP exp + 1
     BEQ freeEnsure_gc
 .freeEnsure_next
-    TAIL tmp, tmp
+    JSR tail
     INC ret
     BNE freeEnsure_loop
     CLC
@@ -167,28 +167,28 @@
 
 .freeMark_cons
     PUSH exp
-    HEAD tmp, exp
+    MOVE tmp, exp
+    JSR head ; take head before marking pointer to head
     LDY #0
     LDA #1
-    ORA (exp), Y
-    STA (exp), Y
-    MOVE exp, tmp
+    ORA (tmp), Y
+    STA (tmp), Y
     JSR freeMark
-    PULL tmp
-    TAIL exp, tmp
+    PULL exp
+    JSR tail
     JMP freeMark
 
 .freeMark_proc
     PUSH exp
-    HEAD tmp, exp
+    MOVE tmp, exp
+    JSR head
     LDY #0
     LDA #1
-    ORA (exp), Y
-    STA (exp), Y
-    MOVE exp, tmp
+    ORA (tmp), Y
+    STA (tmp), Y
     JSR freeMark
-    PULL tmp
-    TAIL exp, tmp
+    PULL exp
+    JSR tail
     LDA exp
     AND #&FC
     STA exp

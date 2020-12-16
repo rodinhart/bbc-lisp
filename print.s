@@ -44,8 +44,8 @@
     JSR head
     JSR print
 
-    PULL tmp
-    TAIL exp, tmp
+    PULL exp
+    JSR tail
 
     NILL exp, printCons_loop
 
