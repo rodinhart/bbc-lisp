@@ -104,7 +104,7 @@
     EQUW 2
 
     EQUB "+", 0, 0, 0
-    EQUW native_plus
+    EQUW nativePlus
     EQUW 3
 
     EQUB "-", 0, 0, 0
@@ -116,19 +116,19 @@
     EQUW 3
 
     EQUB "car", 0
-    EQUW native_car
+    EQUW nativeCar
     EQUW 3
 
     EQUB "cdr", 0
-    EQUW native_cdr
+    EQUW nativeCdr
     EQUW 3
 
     EQUB "cons"
-    EQUW native_cons
+    EQUW nativeCons
     EQUW 3
 
     EQUB "prn", 0
-    EQUW native_prn
+    EQUW nativePrn
     EQUW 3
 
     EQUB 0
@@ -211,17 +211,17 @@ ALIGN 4
     RTS
 
 ALIGN 4
-.native_plus ; (fn args (reduce + 0 args))
+.nativePlus ; (fn args (reduce + 0 args))
     LDA #0
     STA ret
     STA ret + 1
-.native_plus_loop
+.nativePlus_loop
     LDA #0
     CMP exp
-    BNE native_plus_add
+    BNE nativePlus_add
     CMP exp + 1 
-    BEQ native_plus_done
-.native_plus_add
+    BEQ nativePlus_done
+.nativePlus_add
     JSR headTmp
     LDY #1 ; ret += tmp
     LDA (tmp), Y
@@ -234,8 +234,8 @@ ALIGN 4
     STA ret + 1
 
     JSR tail
-    JMP native_plus_loop
-.native_plus_done
+    JMP nativePlus_loop
+.nativePlus_done
     MOVE tmp, ret
     JMP createNumber
 
@@ -295,21 +295,21 @@ ALIGN 4
     RTS
 
 ALIGN 4
-.native_car ; (fn (pair) (car pair))
+.nativeCar ; (fn (pair) (car pair))
     JSR head
     JSR headTmp
     MOVE ret, tmp
     RTS
 
 ALIGN 4
-.native_cdr ; (fn (pair) (cdr pair))
+.nativeCdr ; (fn (pair) (cdr pair))
     JSR head
     JSR tail
     MOVE ret, exp
     RTS
 
 ALIGN 4
-.native_cons ; (fn (x y) (cons x y))
+.nativeCons ; (fn (x y) (cons x y))
     JSR freeAlloc
     MOVE tmp, exp
     JSR head
@@ -321,7 +321,7 @@ ALIGN 4
     RTS
 
 ALIGN 4
-.native_prn ; (fn (v) (prn v))
+.nativePrn ; (fn (v) (prn v))
     JSR head
     JSR print
     JSR osnewl

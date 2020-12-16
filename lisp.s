@@ -1,16 +1,5 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
-;; make all label verbNoun_sublabel
-;; macro for init cells?
-;; ZERO exp ?
-;; cons macro?
-;; use zero page for temp stuff (like read number)
-;; add *
-;; refactor symbol decoding (unknown & print)
-;; support (x . y)
-;; work out biggest chunk of cells needed in single eval
-;; change macros to subroutines
-;; use car, cadr etc?
 ;; head and tail to mask out lower 2 bits? (see gc mark)
 
 oswrch = &FFEE
