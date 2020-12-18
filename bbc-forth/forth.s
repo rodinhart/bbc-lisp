@@ -1,7 +1,5 @@
 \ http://localhost:8081/?disc1=forth.ssd&autoboot
 
-;; Move loop address to non-data stack?
-
 osasci = &FFE3
 osnewl = &FFE7
 
@@ -30,11 +28,28 @@ ORG &1908
 
   JSR advance
 
+  LDA tmp + 1
+  BEQ exec_word
+
   LDA #HI(loop - 1) ; indirect jump, return to loop
   PHA
   LDA #LO(loop - 1)
   PHA
   JMP (tmp)
+.exec_word
+  DEC ctrl ; push return address
+  LDY ctrl
+  LDA pc
+  STA ctrl_low, Y
+  LDA pc + 1
+  STA ctrl_high, Y
+
+  LDY tmp ; jump to word
+  LDA words_low, Y
+  STA pc
+  LDA words_high, Y
+  STA pc + 1
+  JMP loop
 
 .advance ; use Y in chunks of 128 instructions
   LDA #2
@@ -46,7 +61,20 @@ ORG &1908
   STA pc + 1
   RTS  
 
+DecDec = 13
+Dec4 = 140
 .code
+  EQUW Proc, DecDec
+  EQUW Dec, Dec
+  EQUW End
+
+  EQUW Proc, Dec4
+  EQUW DecDec
+  EQUW DecDec
+  EQUW End
+
+  EQUW Push, 203, Dec4, Print, NewL
+
   EQUW Push, 1, Push, 1
   EQUW Push, 20, Loop
 
@@ -92,6 +120,15 @@ ORG &1908
 
 .Drop
   DEX
+  RTS
+
+.End
+  LDY ctrl
+  LDA ctrl_low, Y
+  STA pc
+  LDA ctrl_high, Y
+  STA pc + 1
+  INC ctrl
   RTS
 
 .Eq
@@ -169,6 +206,30 @@ ORG &1908
   LDA stack_high, X
   DEX
   JMP osasci
+
+.Proc
+  LDY #0 ; load "name"
+  LDA (pc), Y
+  TAY
+  JSR advance
+  LDA pc
+  STA words_low, Y
+  LDA pc + 1
+  STA words_high, Y
+.Proc_loop
+  LDY #0
+  LDA (pc), Y
+  CMP #LO(End)
+  BNE Proc_next
+  INY
+  LDA (pc), Y
+  CMP #HI(End)
+  BEQ Proc_end
+.Proc_next
+  JSR advance
+  JMP Proc_loop
+.Proc_end
+  JMP advance
 
 .Push
   INX
@@ -316,5 +377,9 @@ ALIGN &100
 .ctrl_low
   SKIP 256
 .ctrl_high
+  SKIP 256
+.words_low
+  SKIP 256
+.words_high
 
 SAVE "Forth", start, end
