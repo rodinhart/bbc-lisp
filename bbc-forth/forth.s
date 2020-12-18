@@ -12,7 +12,7 @@ ctrl = &8F
 ORG &1908
 
 .start
-  LDX #0 ; init stack
+  LDX #255 ; init stack
   STX ctrl ; init control stack
 
   LDA #LO(code) ; init program counter
@@ -62,7 +62,6 @@ ORG &1908
 ;; words
 
 .Add
-  DEX
   LDA stack_low, X
   CLC
   ADC stack_low - 1, X
@@ -70,24 +69,25 @@ ORG &1908
   LDA stack_high, X
   ADC stack_high - 1, X
   STA stack_high - 1, X
+  DEX
   RTS
 
 .Dec
-  LDA stack_low - 1, X
+  LDA stack_low, X
   SEC
   SBC #1
-  STA stack_low - 1, X
-  LDA stack_high - 1, X
+  STA stack_low, X
+  LDA stack_high, X
   SBC #0
-  STA stack_high - 1, X
+  STA stack_high, X
   RTS
 
 .Dup
-  LDA stack_low -1, X
-  STA stack_low, X
-  LDA stack_high -1, X
-  STA stack_high, X
   INX
+  LDA stack_low - 1, X
+  STA stack_low, X
+  LDA stack_high - 1, X
+  STA stack_high, X
   RTS
 
 .Drop
@@ -95,7 +95,6 @@ ORG &1908
   RTS
 
 .Eq
-  DEX
   LDA stack_low, X
   CMP stack_low - 1, X
   BNE Eq_false
@@ -103,18 +102,20 @@ ORG &1908
   CMP stack_high - 1, X
   BNE Eq_false
   
+  DEX
   LDA #&FF
-  STA stack_low - 1, X
-  STA stack_high - 1, X
+  STA stack_low , X
+  STA stack_high, X
   RTS
 .Eq_false
+  DEX
   LDA #0
-  STA stack_low - 1, X
-  STA stack_high - 1, X
+  STA stack_low, X
+  STA stack_high, X
   RTS
 
 .Halt
-  TXA
+  CPX #255
   BNE stackError
 
   PLA
@@ -137,12 +138,12 @@ ORG &1908
   JMP osnewl
 
 .Not
-  LDA stack_low - 1, X
+  LDA stack_low, X
   EOR #&FF
-  STA stack_low - 1, X
-  LDA stack_high - 1, X
+  STA stack_low, X
+  LDA stack_high, X
   EOR #&FF
-  STA stack_high - 1, X
+  STA stack_high, X
   RTS
 
 .NotEq
@@ -150,77 +151,78 @@ ORG &1908
   JMP Not
 
 .Over
+  INX
   LDA stack_low - 2, X
   STA stack_low, X
   LDA stack_high - 2, X
   STA stack_high, X
-  INX
   RTS
 
 .Print
+  JSR printDecimal
   DEX
-  JMP printDecimal
+  RTS
 
 .PrintString
-  DEX
   LDA stack_low, X
   JSR osasci
   LDA stack_high, X
+  DEX
   JMP osasci
 
 .Push
+  INX
   LDY #0
   LDA (pc), Y
   STA stack_low, X
   INY
   LDA (pc), Y
   STA stack_high, X
-  INX
 
   JMP advance
 
 .Rot
-  LDA stack_low - 3, X
-  PHA
   LDA stack_low - 2, X
-  STA stack_low - 3, X
+  PHA
   LDA stack_low - 1, X
   STA stack_low - 2, X
-  PLA
+  LDA stack_low, X
   STA stack_low - 1, X
+  PLA
+  STA stack_low, X
 
-  LDA stack_high - 3, X
-  PHA
   LDA stack_high - 2, X
-  STA stack_high - 3, X
+  PHA
   LDA stack_high - 1, X
   STA stack_high - 2, X
-  PLA
+  LDA stack_high , X
   STA stack_high - 1, X
+  PLA
+  STA stack_high, X
 
   RTS
 
 .Swap
+  LDA stack_low, X
+  PHA
   LDA stack_low - 1, X
-  PHA
-  LDA stack_low - 2, X
+  STA stack_low, X
+  PLA
   STA stack_low - 1, X
-  PLA
-  STA stack_low - 2, X
 
-  LDA stack_high - 1, X
+  LDA stack_high, X
   PHA
-  LDA stack_high - 2, X
-  STA stack_high - 1, X
+  LDA stack_high - 1, X
+  STA stack_high, X
   PLA
-  STA stack_high - 2, X
+  STA stack_high - 1, X
 
   RTS
 
 .While
-  DEX
   LDA stack_low, X
   BEQ While_false
+  DEX
 .While_true
   LDY ctrl
   LDA ctrl_low, Y
@@ -229,6 +231,7 @@ ORG &1908
   STA pc + 1
   RTS
 .While_false
+  DEX
   INC ctrl
   RTS
 
