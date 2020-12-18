@@ -1,15 +1,19 @@
 \ http://localhost:8081/?disc1=forth.ssd&autoboot
 
+;; Move loop address to non-data stack?
+
 osasci = &FFE3
 osnewl = &FFE7
 
 pc = &70
 tmp = &72
+ctrl = &8F
 
 ORG &1908
 
 .start
   LDX #0 ; init stack
+  STX ctrl ; init control stack
 
   LDA #LO(code) ; init program counter
   STA pc
@@ -43,12 +47,16 @@ ORG &1908
   RTS  
 
 .code
-  EQUW Push, 5
-  EQUW Loop
-  EQUW Over, Print, NewL
-  EQUW Swap, Dec, Swap, Over, Push, 0, NotEq
-  EQUW While
-  EQUW Drop
+  EQUW Push, 1, Push, 1
+  EQUW Push, 20, Loop
+
+  EQUW Rot, Dup, Print, Push
+  EQUS " ", 0
+  EQUW PrintString
+  EQUW Rot, Swap, Over, Add, Rot
+
+  EQUW Dec, Dup, Push, 0, NotEq, While
+  EQUW Drop, Drop, Drop
   EQUW Halt
 
 ;; words
@@ -117,11 +125,12 @@ ORG &1908
   EQUB 0, "Stack pointer not 0", 0
 
 .Loop
+  DEC ctrl
+  LDY ctrl
   LDA pc
-  STA stack_low, X
+  STA ctrl_low, Y
   LDA pc + 1
-  STA stack_high, X
-  INX
+  STA ctrl_high, Y
   RTS
 
 .NewL
@@ -152,6 +161,13 @@ ORG &1908
   DEX
   JMP printDecimal
 
+.PrintString
+  DEX
+  LDA stack_low, X
+  JSR osasci
+  LDA stack_high, X
+  JMP osasci
+
 .Push
   LDY #0
   LDA (pc), Y
@@ -162,6 +178,27 @@ ORG &1908
   INX
 
   JMP advance
+
+.Rot
+  LDA stack_low - 3, X
+  PHA
+  LDA stack_low - 2, X
+  STA stack_low - 3, X
+  LDA stack_low - 1, X
+  STA stack_low - 2, X
+  PLA
+  STA stack_low - 1, X
+
+  LDA stack_high - 3, X
+  PHA
+  LDA stack_high - 2, X
+  STA stack_high - 3, X
+  LDA stack_high - 1, X
+  STA stack_high - 2, X
+  PLA
+  STA stack_high - 1, X
+
+  RTS
 
 .Swap
   LDA stack_low - 1, X
@@ -184,13 +221,15 @@ ORG &1908
   DEX
   LDA stack_low, X
   BEQ While_false
-  LDA stack_low - 1, X
+.While_true
+  LDY ctrl
+  LDA ctrl_low, Y
   STA pc
-  LDA stack_high - 1, X
+  LDA ctrl_high, Y
   STA pc + 1
   RTS
 .While_false
-  DEX
+  INC ctrl
   RTS
 
 ;; libs
@@ -270,5 +309,9 @@ ALIGN &100
 .stack_low
   SKIP 256
 .stack_high
+  SKIP 256
+.ctrl_low
+  SKIP 256
+.ctrl_high
 
 SAVE "Forth", start, end
