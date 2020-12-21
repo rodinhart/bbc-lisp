@@ -111,6 +111,14 @@
     EQUW nativeSub
     EQUW 3
 
+    EQUB "/", 0, 0, 0
+    EQUW nativeDiv
+    EQUW 3
+
+    EQUB "*", 0, 0, 0
+    EQUW nativeMul
+    EQUW 3
+
     EQUB "=", 0, 0, 0
     EQUW nativeEq
     EQUW 3
@@ -129,6 +137,10 @@
 
     EQUB "prn", 0
     EQUW nativePrn
+    EQUW 3
+
+    EQUB "gcd", 0
+    EQUW nativeGcd
     EQUW 3
 
     EQUB 0
@@ -273,6 +285,95 @@ ALIGN 4
     JMP createNumber
 
 ALIGN 4
+.nativeDiv
+    JSR headTmp ; ret = numerator
+    LDY #1
+    LDA (tmp), Y
+    STA ret
+    INY
+    LDA (tmp), Y
+    STA ret + 1
+    
+    JSR tail ; tmp = denominator
+    JSR head
+    LDY #1
+    LDA (exp), Y
+    STA tmp
+    INY
+    LDA (exp), Y
+    STA tmp + 1
+
+    LDY #0
+.nativeDiv_loop
+    LDA ret
+    SEC
+    SBC tmp
+    STA ret
+    LDA ret + 1
+    SBC tmp + 1
+    STA ret + 1
+    INY
+    BCS nativeDiv_loop
+
+    DEY
+    STY tmp
+    LDY #0
+    STY tmp + 1
+    JMP createNumber
+
+ALIGN 4
+.nativeMul
+    JSR headTmp
+    LDY #1
+    LDA (tmp), Y
+    STA ret
+    INY
+    LDA (tmp), Y
+    STA ret + 1
+
+    JSR tail
+    JSR head
+    LDY #1
+    LDA (exp), Y
+    STA tmp
+    INY
+    LDA (exp), Y
+    STA tmp + 1
+
+    LDA #0
+    STA &82
+    STA &83
+    LDY #16
+.nativeMul_loop
+    LSR ret + 1
+    ROR ret
+    BCC nativeMul_shift
+
+    LDA tmp
+    CLC
+    ADC &82
+    STA &82
+    LDA tmp + 1
+    ADC &83
+    STA &83
+.nativeMul_shift
+    LDA &83
+    CMP #128
+    ROR &83
+    ROR &82
+    ROR &81
+    ROR &80
+
+    DEY
+    BNE nativeMul_loop
+
+    LDA &80
+    STA tmp
+    LDA &81
+    STA tmp + 1
+    JMP createNumber
+
+ALIGN 4
 .nativeEq
     JSR headTmp
     MOVE ret, tmp
@@ -329,3 +430,53 @@ ALIGN 4
     STA ret
     STA ret + 1
     RTS
+
+ALIGN 4
+.nativeGcd ; (fn (a b) (gcd a b))
+    JSR headTmp ; ret = a
+    LDY #1
+    LDA (tmp), Y
+    STA ret
+    INY
+    LDA (tmp), Y
+    STA ret + 1
+
+    JSR tail ; tmp = b
+    JSR head
+    LDY #1
+    LDA (exp), Y
+    STA tmp
+    INY
+    LDA (exp), Y
+    STA tmp + 1
+.nativeGcd_loop
+    LDA ret ; ret = ret - tmp
+    SEC
+    SBC tmp
+    STA ret
+    BNE nativeGcd_notEq
+    LDA ret + 1 ; could be eq
+    SBC tmp + 1
+    STA ret + 1
+    BNE nativeGcd_notEq2
+    JMP createNumber ; return tmp as number
+.nativeGcd_notEq
+    LDA ret + 1
+    SBC tmp + 1
+    STA ret + 1
+.nativeGcd_notEq2
+    BCS nativeGcd_loop
+    LDA tmp
+    PHA
+    CLC
+    ADC ret
+    STA tmp
+    LDA tmp + 1
+    PHA
+    ADC ret + 1
+    STA tmp + 1
+    PLA
+    STA ret + 1
+    PLA
+    STA ret
+    JMP nativeGcd_loop

@@ -1,20 +1,17 @@
-(def rest (fn (p) ((cdr p))))
-
-(def fold (fn (step init xs)
-  (if xs
-    (fold step (step init (car xs)) (rest xs))
-    init)))
-
-(def take (fn (n xs)
-  (if (= n 0)
-    nil
-    (cons (car xs) (fn () (take (- n 1) (rest xs)))))))
-
-(def zip (fn (f xs ys)
+(def rat (fn (d n)
   (cons
-    (f (car xs) (car ys))
-    (fn () (zip f (rest xs) (rest ys))))))
+    (/ d (gcd d n))
+    (/ n (gcd d n)))))
+(def nume car)
+(def deno cdr)
 
-(def s (fn (a b) (cons a (fn () (s b (+ a b))))))
+(def add (fn (a b)
+  (rat
+    (+ (* (nume a) (deno b)) (* (nume b) (deno a)))
+    (* (deno a) (deno b)))))
 
-(fold (fn (_ x) (prn x)) nil (take 10 (s 1 1)))
+(def x (rat 1 2))
+(def y (rat 1 4))
+(def z (add x y))
+
+(prn (cons (nume z) (cons (deno z) nil)))

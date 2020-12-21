@@ -1,6 +1,7 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
 ;; printDecimal arg confusion
+;; Implement Macro
 ;; head and tail to mask out lower 2 bits? (see gc mark)
 
 oswrch = &FFEE

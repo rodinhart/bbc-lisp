@@ -76,7 +76,7 @@ Dec4 = 140
   EQUW Push, 203, Dec4, Print, NewL
 
   EQUW Push, 1, Push, 1
-  EQUW Push, 20, Loop
+  EQUW Push, 24, Loop
 
   EQUW Rot, Dup, Print, Push
   EQUS " ", 0
