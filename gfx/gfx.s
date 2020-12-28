@@ -157,7 +157,7 @@ S = surfaces_1 - surfaces_0
   CMP #128
   ROR &8D
   ROR &8C
-  
+
   LDA &8C
   CLC
   ADC #128
@@ -244,7 +244,7 @@ S = surfaces_1 - surfaces_0
 .div
   EQUB 0
 FOR n, 1, 255
-  EQUB LO(256 / n)
+  EQUB LO(256 / n + 0.5)
 NEXT
 
 .plot
@@ -277,12 +277,12 @@ NEXT
 
 .sine
 FOR a, 0, 255
-  EQUB 127 * SIN(2 * PI * a / 256)
+  EQUB 127 * SIN(2 * PI * a / 256) + 0.5
 NEXT
 
 .cosine
 FOR a, 0, 255
-  EQUB 127 * COS(2 * PI * a / 256)
+  EQUB 127 * COS(2 * PI * a / 256) + 0.5
 NEXT
 
 .mul8
