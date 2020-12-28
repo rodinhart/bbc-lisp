@@ -117,47 +117,52 @@ S = surfaces_1 - surfaces_0
   ADC tmpz
   STA tmpz
 
-  LDA tmpy
+  ;; x/y and z/y
+  LDA tmpy ; x/y
   CLC
   ADC #100
-  TAY
-  LDA div, Y
-   
-  PHA
+  STA &8F
+
+  LDA vertices_x, X
+  CMP #128
+  ROR A
+  CMP #128
+  ROR A
   STA &8E
   LDA vertices_x, X
-  STA &8F
-  JSR umul8
-
-  LDA &8D
-  CMP #128
-  ROR &8D ;x64
-  ROR &8C
-  LDA &8D
-  CMP #128
-  ROR &8D
-  ROR &8C
-
+  ASL A
+  ASL A
+  ASL A
+  ASL A
+  ASL A
+  ASL A
+  STA &8D
+  JSR div8
   LDA &8C
   CLC
   ADC #128
   STA coords_x, X
 
-  PLA
+  LDA tmpy
+  CLC
+  ADC #100
+  STA &8F
+
+  LDA tmpz
+  CMP #128
+  ROR A
+  CMP #128
+  ROR A
   STA &8E
   LDA tmpz
-  STA &8F
-  JSR umul8
-
-  LDA &8D
-  CMP #128
-  ROR &8D ; x64
-  ROR &8C
-  LDA &8D
-  CMP #128
-  ROR &8D
-  ROR &8C
-
+  ASL A
+  ASL A
+  ASL A
+  ASL A
+  ASL A
+  ASL A
+  STA &8D
+  JSR div8
   LDA &8C
   CLC
   ADC #128
@@ -241,11 +246,48 @@ S = surfaces_1 - surfaces_0
 
   RTS
 
-.div
-  EQUB 0
-FOR n, 1, 255
-  EQUB LO(256 / n + 0.5)
-NEXT
+.div8
+  LDA &8E
+  BPL udiv8
+  LDA &8E
+  EOR #&FF
+  STA &8E
+  LDA &8D
+  EOR #&FF
+  STA &8D
+
+  LDA #1
+  CLC
+  ADC &8D
+  STA &8D
+  LDA #0
+  ADC &8E
+  STA &8E
+  JSR udiv8
+  LDA &8C
+  EOR #&FF
+  STA &8C
+  INC &8C
+  RTS
+
+.udiv8 ; &8C = &8D-&8E / &8F
+  LDY #8
+.udiv8_loop
+  ASL &8D ; shift numerator left
+  ROL &8E
+
+  LDA &8E ; compare
+  CMP &8F
+  BCC udiv8_shift
+  SEC ; subtract
+  SBC &8F
+  STA &8E
+.udiv8_shift
+  ROL &8C ; shift in resulting bit
+
+  DEY
+  BNE udiv8_loop
+  RTS
 
 .plot
   PHA
