@@ -32,35 +32,17 @@ N = vertices_y - vertices_x
   EQUB 3, 2, 6, 7
 S = surfaces_1 - surfaces_0
 
+.vdus
+  EQUB 22, 4 ; mode 4
+  EQUB 23, 1, 0, 0, 0, 0, 0, 0, 0, 0 ; VDU 23,1,0;0;0;0;
 .run
-  LDA #22 ; mode 4
+  LDY #0
+.run_loop
+  LDA vdus, Y
   JSR osasci
-  LDA #4
-  JSR osasci
-
-  ;; VDU 23,1,0;0;0;0;
-  LDA #23
-  JSR osasci
-  LDA #1
-  JSR osasci
-  LDA #0
-  JSR osasci
-  LDA #0
-  JSR osasci
-  LDA #0
-  JSR osasci
-  LDA #0
-  JSR osasci
-  LDA #0
-  JSR osasci
-  LDA #0
-  JSR osasci
-  LDA #0
-  JSR osasci
-  LDA #0
-  JSR osasci
-  LDA #0
-  JSR osasci
+  INY
+  CMP #run - vdus
+  BNE run_loop
 
   LDA #0
   STA rotx
@@ -118,6 +100,7 @@ S = surfaces_1 - surfaces_0
   STA tmpz
 
   ;; x/y and z/y
+
   LDA tmpy ; x/y
   CLC
   ADC #100
@@ -319,12 +302,12 @@ S = surfaces_1 - surfaces_0
 
 .sine
 FOR a, 0, 255
-  EQUB 127 * SIN(2 * PI * a / 256) + 0.5
+  EQUB 127 * SIN(2 * PI * a / 256)
 NEXT
 
 .cosine
 FOR a, 0, 255
-  EQUB 127 * COS(2 * PI * a / 256) + 0.5
+  EQUB 127 * COS(2 * PI * a / 256)
 NEXT
 
 .mul8
