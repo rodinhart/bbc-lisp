@@ -9,17 +9,18 @@ roty = &71
 tmpx = &73
 tmpy = &74
 tmpz = &75
+tmp = &76
 
 ORG &1908
 
 .start
 
 .vertices_x
-  EQUB -50,  50,  50, -50, -50,  50,  50, -50
+  EQUB -40,  40,  40, -40, -40,  40,  40, -40
 .vertices_y
-  EQUB -50, -50, -50, -50,  50,  50,  50,  50
+  EQUB -40, -40, -40, -40,  40,  40,  40,  40
 .vertices_z
-  EQUB -50, -50,  50,  50, -50, -50,  50,  50
+  EQUB -40, -40,  40,  40, -40, -40,  40,  40
 N = vertices_y - vertices_x
 
 .surfaces_0
@@ -51,15 +52,15 @@ S = surfaces_1 - surfaces_0
 .frame_loop
   LDX #N - 1
 .project_loop
-  ;; rot x
-  LDA vertices_x, X
+  ;; rot y
+  LDA vertices_x, X ; z = z cos - x sin
   STA &8E
   LDY roty
   LDA sine, Y
   STA &8F
   JSR mul8
-  ASL &8C
-  ROL &8D
+  LDA &8C
+  STA tmp
   LDA &8D
   STA tmpz
 
@@ -69,21 +70,24 @@ S = surfaces_1 - surfaces_0
   LDA cosine, Y
   STA &8F
   JSR mul8
-  ASL &8C
-  ROL &8D
-  LDA &8D
+  LDA &8C
   SEC
+  SBC tmp
+  STA tmp
+  LDA &8D
   SBC tmpz
   STA tmpz
+  ASL tmp
+  ROL tmpz
 
-  LDA vertices_z, X
+  LDA vertices_z, X ; x = z sin + x cos
   STA &8E
   LDY roty
   LDA sine, Y
   STA &8F
   JSR mul8
-  ASL &8C
-  ROL &8D
+  LDA &8C
+  STA tmp
   LDA &8D
   STA tmpx
 
@@ -93,12 +97,15 @@ S = surfaces_1 - surfaces_0
   LDA cosine, Y
   STA &8F
   JSR mul8
-  ASL &8C
-  ROL &8D
-  LDA &8D
+  LDA &8C
   CLC
+  ADC tmp
+  STA tmp
+  LDA &8D
   ADC tmpx
   STA tmpx
+  ASL tmp
+  ROL tmpx
 
   LDA vertices_y, X
   STA tmpy
