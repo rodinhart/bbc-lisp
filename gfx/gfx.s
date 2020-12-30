@@ -46,58 +46,62 @@ S = surfaces_1 - surfaces_0
 
   LDA #0
   STA rotx
+  STA roty
 
 .frame_loop
   LDX #N - 1
 .project_loop
   ;; rot x
-  LDA vertices_z, X
+  LDA vertices_x, X
   STA &8E
-  LDY rotx
+  LDY roty
   LDA sine, Y
   STA &8F
   JSR mul8
-  ASL &8C
-  ROL &8D
+;  ASL &8C
+;  ROL &8D
   LDA &8D
-  STA tmpy
+  STA tmpz
 
-  LDA vertices_y, X
+  LDA vertices_z, X
   STA &8E
-  LDY rotx
+  LDY roty
   LDA cosine, Y
   STA &8F
   JSR mul8
-  ASL &8C
-  ROL &8D
+ ; ASL &8C
+ ; ROL &8D
   LDA &8D
   SEC
-  SBC tmpy
-  STA tmpy
-
-  LDA vertices_y, X
-  STA &8E
-  LDY rotx
-  LDA sine, Y
-  STA &8F
-  JSR mul8
-  ASL &8C
-  ROL &8D
-  LDA &8D
+  SBC tmpz
   STA tmpz
 
   LDA vertices_z, X
   STA &8E
-  LDY rotx
+  LDY roty
+  LDA sine, Y
+  STA &8F
+  JSR mul8
+ ; ASL &8C
+ ; ROL &8D
+  LDA &8D
+  STA tmpx
+
+  LDA vertices_x, X
+  STA &8E
+  LDY roty
   LDA cosine, Y
   STA &8F
   JSR mul8
-  ASL &8C
-  ROL &8D
+ ; ASL &8C
+ ; ROL &8D
   LDA &8D
   CLC
-  ADC tmpz
-  STA tmpz
+  ADC tmpx
+  STA tmpx
+
+  LDA vertices_y, X
+  STA tmpy
 
   ;; x/y and z/y
 
@@ -106,13 +110,13 @@ S = surfaces_1 - surfaces_0
   ADC #100
   STA &8F
 
-  LDA vertices_x, X
+  LDA tmpx
   CMP #128
   ROR A
   CMP #128
   ROR A
   STA &8E
-  LDA vertices_x, X
+  LDA tmpx
   ASL A
   ASL A
   ASL A
@@ -219,6 +223,7 @@ S = surfaces_1 - surfaces_0
   BPL draw_loop
 
   INC rotx
+  INC roty
 
   LDA #19
   JSR osbyte
@@ -302,25 +307,38 @@ S = surfaces_1 - surfaces_0
 
 .sine
 FOR a, 0, 255
-  EQUB 127 * SIN(2 * PI * a / 256)
+  EQUB 127 * SIN(a * PI / 128)
 NEXT
 
 .cosine
 FOR a, 0, 255
-  EQUB 127 * COS(2 * PI * a / 256)
+  EQUB 127 * COS(a * PI / 128)
 NEXT
 
+.mul8_mx
+  EOR #&FF
+  STA &8E
+  INC &8E
+  LDA &8F
+  BMI mul8_mm
+  JSR umul8
+  JMP mul8_negate
+.mul8_mm
+  EOR #&FF
+  STA &8F
+  INC &8F
+  JMP umul8
+.mul8_pm
+  EOR #&FF
+  STA &8F
+  INC &8F
+  JSR umul8
+  JMP mul8_negate
 .mul8
   LDA &8E
-  BPL umul8
-  LDA #0
-  SEC
-  SBC &8E
-  STA &8E
-  LDA #0
-  SEC
-  SBC &8F
-  STA &8F
+  BMI mul8_mx
+  LDA &8F
+  BMI mul8_pm
 .umul8 \ &8C-&8D = &8E * &8F
   LDA #0
   STA &8D
@@ -334,13 +352,20 @@ NEXT
   ADC &8D
   STA &8D
 .umul8_shift
-  LDA &8D
-  CMP #128
-  ROR &8D
+  LSR &8D
   ROR &8C
 
   DEY
   BNE umul8_loop
+  RTS
+.mul8_negate
+  LDA #0
+  SEC
+  SBC &8C
+  STA &8C
+  LDA #0
+  SBC &8D
+  STA &8D
   RTS
 
 .printDecimal
