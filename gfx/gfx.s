@@ -58,8 +58,8 @@ S = surfaces_1 - surfaces_0
   LDA sine, Y
   STA &8F
   JSR mul8
-;  ASL &8C
-;  ROL &8D
+  ASL &8C
+  ROL &8D
   LDA &8D
   STA tmpz
 
@@ -69,8 +69,8 @@ S = surfaces_1 - surfaces_0
   LDA cosine, Y
   STA &8F
   JSR mul8
- ; ASL &8C
- ; ROL &8D
+  ASL &8C
+  ROL &8D
   LDA &8D
   SEC
   SBC tmpz
@@ -82,8 +82,8 @@ S = surfaces_1 - surfaces_0
   LDA sine, Y
   STA &8F
   JSR mul8
- ; ASL &8C
- ; ROL &8D
+  ASL &8C
+  ROL &8D
   LDA &8D
   STA tmpx
 
@@ -93,8 +93,8 @@ S = surfaces_1 - surfaces_0
   LDA cosine, Y
   STA &8F
   JSR mul8
- ; ASL &8C
- ; ROL &8D
+  ASL &8C
+  ROL &8D
   LDA &8D
   CLC
   ADC tmpx
