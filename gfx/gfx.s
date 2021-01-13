@@ -37,6 +37,7 @@ S = surfaces_1 - surfaces_0
   EQUB 22, 4 ; mode 4
   EQUB 23, 1, 0, 0, 0, 0, 0, 0, 0, 0 ; VDU 23,1,0;0;0;0;
 .run
+    RTS
   LDY #0
 .run_loop
   LDA vdus, Y
@@ -409,3 +410,7 @@ NEXT
 
 
 SAVE "Gfx", start, end, run
+
+ORG &3000
+INCBIN "gfx/newyork"
+SAVE "newyork", &3000, &8000
