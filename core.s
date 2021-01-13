@@ -123,6 +123,10 @@
     EQUW nativeEq
     EQUW 3
 
+    EQUB "!=", 0, 0
+    EQUW nativeNotEq
+    EQUW 3
+
     EQUB "car", 0
     EQUW nativeCar
     EQUW 3
@@ -141,6 +145,10 @@
 
     EQUB "gcd", 0
     EQUW nativeGcd
+    EQUW 3
+
+    EQUB "abs", 0
+    EQUW nativeAbs
     EQUW 3
 
     EQUB 0
@@ -396,6 +404,28 @@ ALIGN 4
     RTS
 
 ALIGN 4
+.nativeNotEq
+    JSR headTmp
+    MOVE ret, tmp
+    JSR tail
+    JSR headTmp
+    LDY #1
+    LDA (tmp), Y
+    CMP (ret), Y
+    BNE nativeNotEq_noteq
+    INY
+    LDA (tmp), Y
+    CMP (ret), Y
+    BNE nativeNotEq_noteq
+
+    LDA #0
+    STA ret
+    STA ret + 1
+    RTS
+.nativeNotEq_noteq
+    RTS
+
+ALIGN 4
 .nativeCar ; (fn (pair) (car pair))
     JSR head
     JSR headTmp
@@ -480,3 +510,23 @@ ALIGN 4
     PLA
     STA ret
     JMP nativeGcd_loop
+
+ALIGN 4
+.nativeAbs ; (fn abs (x) (abs x))
+    JSR head
+    LDY #2
+    LDA (exp), Y
+    BMI nativeAbs_invert
+    MOVE ret, exp
+    RTS
+.nativeAbs_invert
+    LDA #0
+    DEY
+    SEC
+    SBC (exp), Y
+    STA tmp
+    LDA #0
+    INY
+    SBC (exp), Y
+    STA tmp + 1
+    JMP createNumber

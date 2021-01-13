@@ -66,6 +66,9 @@ ENDMACRO
 
 MACRO PUSH reg
     DEX
+     ;BNE ok
+     ;JMP stackOverflow
+     ;.ok
     LDA reg
     STA stack_low, X
     LDA reg + 1

@@ -39,7 +39,7 @@
     TAILSET tmp, frl
     MOVE frl, tmp
 .freeCollect_next
-    LDA #32 ; advance tmp to the next cell
+    LDA #4 ; advance tmp to the next cell
     CLC
     ADC tmp
     STA tmp
@@ -62,7 +62,7 @@
 
 
 .freeEnsure ; C = freeEnsure, corrupts ret, tmp
-    LDA #256 - 16
+    LDA #256 - 32
     STA ret
     MOVE exp, frl
 .freeEnsure_loop
@@ -85,6 +85,8 @@
 .freeGC_sp
     EQUB 0
 .freeGC
+     ;LDA #'.'
+     ;JSR osasci
     STX freeGC_sp
 .freeGC_loop
     LDY freeGC_sp
@@ -108,7 +110,7 @@
     LDA #0 ; clear marked
     STA (exp), Y
 
-    LDA #32 ; advance exp to next cell
+    LDA #4 ; advance exp to next cell
     CLC
     ADC exp
     STA exp

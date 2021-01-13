@@ -1,5 +1,8 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
+;; nested expressions not reading? > 256 chars?
+;; implement list
+;; print negative numbers
 ;; printDecimal arg confusion
 ;; Implement Macro
 ;; head and tail to mask out lower 2 bits? (see gc mark)

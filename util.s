@@ -109,3 +109,7 @@
     JMP printString_loop
 .printString_end
     RTS
+
+.stackOverflow
+    BRK
+    EQUB 0, "Data stack overflow", 0
