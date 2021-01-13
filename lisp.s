@@ -1,7 +1,7 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
 ;; nested expressions not reading? > 256 chars?
-;; implement list
+;; implement function body with multiple statements
 ;; print negative numbers
 ;; printDecimal arg confusion
 ;; Implement Macro

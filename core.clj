@@ -43,14 +43,34 @@
 (def range (fold (quote (1 2 3 4 5 6 7))))
 (def empty (fold nil))
 
-(def iter (fn (brds rank) (reify (fmap
-  (fn (file) (fmap
-    (fn (bord) (if (safe bord rank file)
+(def iter (fn (brds rank) (fmap
+  (fn (bord) (fmap
+    (fn (file) (if (safe bord rank file)
       (fold (cons (cons rank (cons file bord)) nil))
       empty))
-    (fold brds)))
-  range))))
+    range))
+  brds)))
 
-(range
+(def queens (range
   (fn (brds rank) (iter brds rank))
-  (cons nil nil))
+  (fold (cons nil nil))))
+
+(def cls (fn ()
+  (list
+    (vdu 22 7 23 1 0 0 0 0 0 0 0 0)
+    (range
+      (fn (r rank) (range
+        (fn (s file)
+          (vdu 31 rank file 46))
+        nil))
+      nil)
+  )))
+
+(def draw (fn (bord hack)
+  (if bord
+    (draw (cdr (cdr bord)) (vdu 31 (car (cdr bord)) (car bord) 81))
+    nil)))
+
+(queens
+  (fn (r x) (draw x (cls)))
+  nil)

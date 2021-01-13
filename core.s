@@ -151,6 +151,14 @@
     EQUW nativeAbs
     EQUW 3
 
+    EQUB "vdu", 0
+    EQUW nativeVdu
+    EQUW 3
+
+    EQUB "list"
+    EQUW nativeList
+    EQUW 3
+
     EQUB 0
 
 ALIGN 4
@@ -530,3 +538,21 @@ ALIGN 4
     SBC (exp), Y
     STA tmp + 1
     JMP createNumber
+
+ALIGN 4
+.nativeVdu
+    NILL exp, nativeVdu_more
+    MOVE ret, exp ; return nil
+    RTS
+.nativeVdu_more
+    JSR headTmp
+    LDY #1
+    LDA (tmp), Y
+    JSR osasci
+    JSR tail
+    JMP nativeVdu
+
+ALIGN 4
+.nativeList
+    MOVE ret, exp
+    RTS
