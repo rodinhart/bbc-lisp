@@ -25,3 +25,17 @@ A cell in the box-pointer model is 32 bits, with the following flavours:
 | `00000000 00000011 xxxxxxxx xxxxxx0M` | Native    | x = pointer to native routine                     |
 | `cccccccd bbbbbbbd aaaaaaad dddd001M` | Symbol    | 4 ASCII chars packed in 28 bits                   |
 | `00000000 nnnnnnnn nnnnnnnn 0000011M` | Number    | n = 16 bit unsigned integer                       |
+
+## compiling
+
+```clj
+42
+```
+
+```s
+ LDA #42
+ STA tmp
+ LDA #0
+ STA tmp + 1
+ JSR createNumber
+```

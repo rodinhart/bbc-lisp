@@ -1,14 +1,13 @@
 .eval_gc
+    PUSH exp
     PUSH env
     JSR freeGC
     PULL env
     PULL exp
     JMP eval_gcdone
 .eval
-    PUSH exp
-    JSR freeEnsure
-    BCS eval_gc
-    PULL exp
+    LDA frc + 1
+    BEQ eval_gc
 .eval_gcdone    
     JSR getType
     LDA eval_jumphigh, Y

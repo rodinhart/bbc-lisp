@@ -28,7 +28,7 @@
 .printByte_chars
     EQUS "0123456789ABCDEF"
 
-.printDecimal ; print exp
+.printDecimal ; print ret
     LDA #0
     STA printDecimal_trailing
 

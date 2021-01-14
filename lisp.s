@@ -1,9 +1,9 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
+;; printDecimal arg confusion
 ;; nested expressions not reading? > 256 chars?
 ;; implement function body with multiple statements
 ;; print negative numbers
-;; printDecimal arg confusion
 ;; Implement Macro
 ;; head and tail to mask out lower 2 bits? (see gc mark)
 
@@ -16,6 +16,7 @@ exp = &72
 env = &74
 tmp = &76
 frl = &78
+frc = &7A
 
 read_cursor = &7F
 

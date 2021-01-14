@@ -19,16 +19,27 @@
     STA (ret), Y
     INY
     STA (ret), Y
+
+    LDA frc
+    SEC
+    SBC #1
+    STA frc
+    LDA frc + 1
+    SBC #0
+    STA frc + 1
+
     RTS
 .freeAlloc_outofmemory
     BRK
     EQUB 0, "Out of memory", 0
 
 
-.freeCollect
+.freeCollect ; uses tmp
     LDA #0
     STA frl
     STA frl + 1
+    STA frc
+    STA frc + 1
     MOVE tmp, free_heap
 .freeCollect_loop
     LDY #0
@@ -38,6 +49,13 @@
 
     TAILSET tmp, frl
     MOVE frl, tmp
+    LDA #1
+    CLC
+    ADC frc
+    STA frc
+    LDA #0
+    ADC frc + 1
+    STA frc + 1
 .freeCollect_next
     LDA #4 ; advance tmp to the next cell
     CLC
@@ -60,33 +78,9 @@
     STA (tmp), Y
     JMP freeCollect_next
 
-
-.freeEnsure ; C = freeEnsure, corrupts ret, tmp
-    LDA #256 - 32
-    STA ret
-    MOVE exp, frl
-.freeEnsure_loop
-    LDA #0
-    CMP exp
-    BNE freeEnsure_next
-    CMP exp + 1
-    BEQ freeEnsure_gc
-.freeEnsure_next
-    JSR tail
-    INC ret
-    BNE freeEnsure_loop
-    CLC
-    RTS
-.freeEnsure_gc
-    SEC
-    RTS
-
-
 .freeGC_sp
     EQUB 0
-.freeGC
-     ;LDA #'.'
-     ;JSR osasci
+.freeGC ; use exp
     STX freeGC_sp
 .freeGC_loop
     LDY freeGC_sp
@@ -130,7 +124,7 @@
 
 .freeMark_mask
     EQUB 1
-.freeMark
+.freeMark ; mark exp recursively, uses tmp
     LDA #0
     CMP exp
     BNE freeMark_notnil
@@ -207,9 +201,10 @@
 .freeReport
     ADDR exp, freeReport_label
     JSR printString
-    MOVE exp, frl
-    JSR freeCount
-    MOVE exp, ret
+    ;MOVE exp, frl
+    ;JSR freeCount
+    ;MOVE exp, ret
+    MOVE ret, frc
     JSR printDecimal
 
     LDA #',' ; print stack
