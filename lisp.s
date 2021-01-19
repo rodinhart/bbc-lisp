@@ -1,5 +1,7 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
+;; redesign cell model: 8 bytes, no align needed for native routines
+;; back to MACRO: swap code size for speed?
 ;; printDecimal arg confusion
 ;; nested expressions not reading? > 256 chars?
 ;; implement function body with multiple statements
@@ -15,8 +17,10 @@ ret = &70
 exp = &72
 env = &74
 tmp = &76
+
 frl = &78
 frc = &7A
+ref = &7C
 
 read_cursor = &7F
 

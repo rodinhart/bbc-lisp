@@ -28,6 +28,8 @@ A cell in the box-pointer model is 32 bits, with the following flavours:
 
 ## compiling
 
+### number
+
 ```clj
 42
 ```
@@ -38,4 +40,32 @@ A cell in the box-pointer model is 32 bits, with the following flavours:
  LDA #0
  STA tmp + 1
  JSR createNumber
+```
+
+### symbol
+
+```clj
+cdr
+```
+
+```s
+ JMP postLabel
+.label
+ EQUB "cdr", 0
+.postLabel
+ LDA #LO(label)
+ STA exp
+ LDA #HI(label)
+ STA exp + 1
+ JSR createSymbol
+```
+
+### apply
+
+```clj
+(+ 2 3)
+```
+
+```s
+
 ```

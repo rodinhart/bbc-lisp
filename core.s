@@ -56,110 +56,122 @@
     RTS
 
 .coreInit_copy
-    JSR coreInit_append
-    JSR freeAlloc
-    HEADSET env, ret
+  JSR coreInit_append
+  JSR freeAlloc
+  HEADSET env, ret
 
-    LDY #4
-    LDA (exp), Y
-    LDY #0
-    STA (ret), Y
+  LDY #4
+  LDA (exp), Y
+  LDY #0
+  STA (ret), Y
 
-    LDY #5
-    LDA (exp), Y
-    LDY #1
-    STA (ret), Y
+  LDY #5
+  LDA (exp), Y
+  LDY #1
+  STA (ret), Y
 
-    LDY #6
-    LDA (exp), Y
-    LDY #2
-    STA (ret), Y
+  LDY #6
+  LDA (exp), Y
+  LDY #2
+  STA (ret), Y
 
-    LDY #7
-    LDA (exp), Y
-    LDY #3
-    STA (ret), Y
+  LDY #7
+  LDA (exp), Y
+  LDY #3
+  STA (ret), Y
 
-    RTS
+  RTS
 
 .coreKvs
-    EQUB "nil", 0
-    EQUW 0
-    EQUW 0
+  EQUB "nil", 0
+  EQUW 0
+  EQUW 0
 
-    EQUB "fn", 0, 0
-    EQUW primitiveFn
-    EQUW 2
+  EQUB "fn", 0, 0
+  EQUW primitiveFn
+  EQUW 2
 
-    EQUB "def", 0
-    EQUW primitiveDef
-    EQUW 2
+  EQUB "def", 0
+  EQUW primitiveDef
+  EQUW 2
 
-    EQUB "if", 0, 0
-    EQUW primitiveIf
-    EQUW 2
+  EQUB "if", 0, 0
+  EQUW primitiveIf
+  EQUW 2
 
-    EQUB "quot"
-    EQUW primitiveQuote
-    EQUW 2
+  EQUB "quot"
+  EQUW primitiveQuote
+  EQUW 2
 
-    EQUB "+", 0, 0, 0
-    EQUW nativePlus
-    EQUW 3
+  EQUB "+", 0, 0, 0
+  EQUW nativePlus
+  EQUW 3
 
-    EQUB "-", 0, 0, 0
-    EQUW nativeSub
-    EQUW 3
+  EQUB "-", 0, 0, 0
+  EQUW nativeSub
+  EQUW 3
 
-    EQUB "/", 0, 0, 0
-    EQUW nativeDiv
-    EQUW 3
+  EQUB "/", 0, 0, 0
+  EQUW nativeDiv
+  EQUW 3
 
-    EQUB "*", 0, 0, 0
-    EQUW nativeMul
-    EQUW 3
+  EQUB "*", 0, 0, 0
+  EQUW nativeMul
+  EQUW 3
 
-    EQUB "=", 0, 0, 0
-    EQUW nativeEq
-    EQUW 3
+  EQUB "=", 0, 0, 0
+  EQUW nativeEq
+  EQUW 3
 
-    EQUB "!=", 0, 0
-    EQUW nativeNotEq
-    EQUW 3
+  EQUB "!=", 0, 0
+  EQUW nativeNotEq
+  EQUW 3
 
-    EQUB "car", 0
-    EQUW nativeCar
-    EQUW 3
+  EQUB "car", 0
+  EQUW nativeCar
+  EQUW 3
 
-    EQUB "cdr", 0
-    EQUW nativeCdr
-    EQUW 3
+  EQUB "cdr", 0
+  EQUW nativeCdr
+  EQUW 3
 
-    EQUB "cons"
-    EQUW nativeCons
-    EQUW 3
+  EQUB "cons"
+  EQUW nativeCons
+  EQUW 3
 
-    EQUB "prn", 0
-    EQUW nativePrn
-    EQUW 3
+  EQUB "prn", 0
+  EQUW nativePrn
+  EQUW 3
 
-    EQUB "gcd", 0
-    EQUW nativeGcd
-    EQUW 3
+  EQUB "gcd", 0
+  EQUW nativeGcd
+  EQUW 3
 
-    EQUB "abs", 0
-    EQUW nativeAbs
-    EQUW 3
+  EQUB "abs", 0
+  EQUW nativeAbs
+  EQUW 3
 
-    EQUB "vdu", 0
-    EQUW nativeVdu
-    EQUW 3
+  EQUB "vdu", 0
+  EQUW nativeVdu
+  EQUW 3
 
-    EQUB "list"
-    EQUW nativeList
-    EQUW 3
+  EQUB "list"
+  EQUW nativeList
+  EQUW 3
 
-    EQUB 0
+  EQUB "get", 0
+  EQUW get
+  EQUW 3
+
+  EQUB "asso"
+  EQUW assoc
+  EQUW 3
+
+  EQUB "hash"
+  EQUW hash
+  EQUW 3
+
+  EQUB 0
 
 ALIGN 4
 .primitiveFn ; (macro (names body) (fn names body))
@@ -540,7 +552,7 @@ ALIGN 4
     JMP createNumber
 
 ALIGN 4
-.nativeVdu
+.nativeVdu ; (vdu 22 7)
     NILL exp, nativeVdu_more
     MOVE ret, exp ; return nil
     RTS
@@ -556,3 +568,102 @@ ALIGN 4
 .nativeList
     MOVE ret, exp
     RTS
+
+ALIGN 4
+.hash ; (hash (quote boo))
+  JSR headTmp
+  LDA #0 ; ret = hash(key)
+  STA ret
+  LDY #3
+.hash_loop
+  STA ret
+  LDA (tmp), Y
+  EOR ret
+  STA ret
+  DEY
+  BPL hash_loop
+
+  STA tmp
+  LDA #0
+  STA tmp + 1
+  JMP createNumber
+
+ALIGN 4
+.assoc ; (assoc obj (quote boo) 2 b 3)
+  
+ALIGN 4
+.get ; (get obj key)
+  JSR headTmp ; ret = obj
+  MOVE ret, tmp
+  JSR tail ; tmp = key
+  JSR head
+  MOVE tmp, exp 
+  MOVE exp, ret ; exp = obj
+  
+  LDA #0 ; ret = hash(key)
+  STA ret
+  LDY #3
+.get_hash
+  STA ret
+  LDA (tmp), Y
+  EOR ret
+  STA ret
+  DEY
+  BPL get_hash
+
+  LDA #8
+  STA ret + 1
+.get_walk
+  LDA exp
+  ORA exp + 1
+  BEQ get_notfound
+
+  ASL ret
+  BCS get_right
+  JSR head
+
+  DEC ret + 1
+  BNE get_walk
+  JMP get_find
+.get_right
+  JSR tail
+  DEC ret + 1
+  BNE get_walk
+.get_find
+  LDA exp
+  ORA exp + 1
+  BEQ get_notfound
+
+  HEAD ret, exp ; ret = symbol
+
+  LDY #0
+  LDA (ret), Y
+  CMP (tmp), Y
+  BNE get_next
+
+  INY
+  LDA (ret), Y
+  CMP (tmp), Y
+  BNE get_next
+
+  INY
+  LDA (ret), Y
+  CMP (tmp), Y
+  BNE get_next
+
+  INY
+  LDA (ret), Y
+  CMP (tmp), Y
+  BNE get_next
+
+  JSR tail
+  HEAD ret, exp
+  RTS
+.get_next
+  JSR tail
+  JSR tail
+  JMP get_find
+ 
+.get_notfound
+  BRK
+  EQUB 0, "Unknown symbol", 0
