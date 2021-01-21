@@ -77,8 +77,8 @@
   (cons (cons nil (cons nil (cons (list (quote a) 2 (quote boo) 30 (quote c) 5) nil))) nil) nil) nil)))
   (quote boo))
 
-(halt)
+(prn (time))
 
 (queens
-  (fn (r x) (draw x (cls)))
+  (fn (r x) (list (prn x) (prn (time))))
   nil)

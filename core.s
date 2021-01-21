@@ -171,6 +171,10 @@
   EQUW hash
   EQUW 3
 
+  EQUB "time"
+  EQUW time
+  EQUW 3
+
   EQUB 0
 
 ALIGN 4
@@ -568,6 +572,24 @@ ALIGN 4
 .nativeList
     MOVE ret, exp
     RTS
+
+ALIGN 4
+.time
+  TXA
+  PHA
+  LDA #1
+  LDX #LO(time_buffer)
+  LDY #HI(time_buffer)
+  JSR osword
+  LDA time_buffer
+  STA tmp
+  LDA time_buffer + 1
+  STA tmp + 1
+  PLA
+  TAX
+  JMP createNumber
+.time_buffer
+ EQUB 0, 0, 0, 0, 0
 
 ALIGN 4
 .hash ; (hash (quote boo))

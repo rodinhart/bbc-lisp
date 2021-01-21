@@ -12,6 +12,7 @@
 oswrch = &FFEE
 osasci = &FFE3
 osnewl = &FFE7
+osword = &FFF1
 
 ret = &70
 exp = &72
