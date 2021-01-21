@@ -71,13 +71,9 @@
     (draw (cdr (cdr bord)) (vdu 31 (car (cdr bord)) (car bord) 81))
     nil)))
 
-(hash (quote boo))
+(get (assoc (assoc (cons nil nil) (quote a) 2) (quote b) 3) (quote b))
 
-(get (cons nil (cons nil (cons (cons
-  (cons (cons nil (cons nil (cons (list (quote a) 2 (quote boo) 30 (quote c) 5) nil))) nil) nil) nil)))
-  (quote boo))
-
-(prn (time))
+(prnX (time))
 
 (queens
   (fn (r x) (list (prn x) (prn (time))))

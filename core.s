@@ -611,7 +611,104 @@ ALIGN 4
   JMP createNumber
 
 ALIGN 4
-.assoc ; (assoc obj (quote boo) 2 b 3)
+.assoc ; (assoc obj (quote boo) 2)
+  HEAD env, exp ; env = obj
+  TAIL exp, exp ; ret = key
+  HEAD ret, exp
+  
+  LDA #0 ; tmp = hash(key)
+  STA tmp
+  LDY #3
+.assoc_hash
+  LDA (ret), Y
+  EOR tmp
+  STA tmp
+  DEY
+  BPL assoc_hash
+
+  JSR freeAlloc ; copy root
+  PUSH ret
+  PUSH exp
+  MOVE exp, ret
+  LDY #3
+.assoc_root
+  LDA (env), Y
+  STA (exp), Y
+  DEY
+  BPL assoc_root
+
+  LDA #7
+  STA tmp + 1
+.assoc_path
+  JSR freeAlloc ; allocate node
+
+  ASL tmp ; shift hash left
+  LDA #0 ; A points left or right
+  ROL A
+  ASL A
+  TAY
+
+  LDA env
+  ORA env + 1
+  BEQ assoc_nopath
+
+  LDA (env), Y ; follow path
+  PHA
+  INY
+  LDA (env), Y
+  STA env + 1
+  PLA
+  STA env
+  DEY
+.assoc_nopath
+  LDA ret ; put new node in place
+  STA (exp), Y
+  INY
+  LDA ret + 1
+  STA (exp), Y
+  MOVE exp, ret
+
+  LDA #0 ; clear node
+  LDY #0
+  STA (exp), Y
+  INY
+  STA (exp), Y
+  INY
+  STA (exp), Y
+  INY
+  STA (exp), Y
+
+  LDA env
+  ORA env + 1
+  BEQ assoc_noclone
+
+  LDY #3 ; clone node
+.assoc_clone
+  LDA (env), Y
+  STA (exp), Y
+  DEY
+  BPL assoc_clone
+.assoc_noclone
+  DEC tmp + 1
+  BNE assoc_path
+
+  PULL ret
+
+  ASL tmp ; shift hash left
+  LDA #0 ; A points left or right
+  ROL A
+  ASL A
+  TAY
+
+  LDA ret ; PUT list in last node
+  STA (exp), Y
+  LDA ret + 1
+  INY
+  STA (exp), Y
+
+  PULL ret
+  RTS
+
   
 ALIGN 4
 .get ; (get obj key)
@@ -626,7 +723,6 @@ ALIGN 4
   STA ret
   LDY #3
 .get_hash
-  STA ret
   LDA (tmp), Y
   EOR ret
   STA ret

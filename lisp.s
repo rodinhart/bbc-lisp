@@ -1,6 +1,8 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
 
+;; use more registers for speed?
+;; make freeAlloc a macro?
 ;; make Nil proper type and memory location?
 ;; redesign cell model: 8 bytes, no align needed for native routines
 ;; printDecimal arg confusion
