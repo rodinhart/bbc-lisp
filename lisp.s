@@ -1,5 +1,9 @@
 \ http://localhost:8081/?disc1=lisp.ssd&autoboot
 
+
+;; use lookup to speed up getType
+;; Inner fns created for every bord, use let to cache fn
+;; make Nil proper type and memory location?
 ;; redesign cell model: 8 bytes, no align needed for native routines
 ;; back to MACRO: swap code size for speed?
 ;; printDecimal arg confusion
