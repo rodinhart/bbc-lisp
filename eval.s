@@ -85,7 +85,7 @@
 .evalCons
   PUSH exp
   PUSH env
-  JSR head
+  HEAD exp, exp
   JSR eval
   MOVE exp, ret
   JSR getType
@@ -93,7 +93,7 @@
   PHA
   PULL env
   PULL exp
-  JSR tail
+  TAIL exp, exp
   PLA
   CMP #3 ; macro
   BNE evalCons_apply
@@ -136,7 +136,7 @@
 
   HEAD ret, exp ; (3 . env)
   HEADSET env, ret
-  JSR tail
+  TAIL exp, exp
 
   JSR freeAlloc ; (_ 3 . env)
   TAILSET ret, env
@@ -149,8 +149,8 @@
   JMP evalCons_loop
 .evalProc_done
   PULL exp
-  JSR tail
-  JSR head
+  TAIL exp, exp
+  HEAD exp, exp
   JMP eval
 
 .evalMap ; (fn (exp) (if (nil? exp) nil (cons (eval (car exp)) (evalMap (cdr exp)))))
@@ -165,12 +165,12 @@
 .evalMap_map
   PUSH exp
   PUSH env
-  JSR head
+  HEAD exp, exp
   JSR eval
   PULL env
   PULL exp
   PUSH ret
-  JSR tail
+  TAIL exp, exp
   JSR evalMap
   PUSH ret
   JSR freeAlloc

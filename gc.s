@@ -164,27 +164,27 @@
 .freeMark_cons
     PUSH exp
     MOVE tmp, exp
-    JSR head ; take head before marking pointer to head
+    HEAD exp, exp ; take head before marking pointer to head
     LDY #0
     LDA #1
     ORA (tmp), Y
     STA (tmp), Y
     JSR freeMark
     PULL exp
-    JSR tail
+    TAIL exp, exp
     JMP freeMark
 
 .freeMark_proc
     PUSH exp
     MOVE tmp, exp
-    JSR head
+    HEAD exp, exp
     LDY #0
     LDA #1
     ORA (tmp), Y
     STA (tmp), Y
     JSR freeMark
     PULL exp
-    JSR tail
+    TAIL exp, exp
     LDA exp
     AND #&FC
     STA exp
@@ -239,5 +239,5 @@
     ADC ret + 1
     STA ret + 1
 
-    JSR tail
+    TAIL exp, exp
     JMP freeCount_loop

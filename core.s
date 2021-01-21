@@ -192,8 +192,8 @@ ALIGN 4
 .primitiveDef ; (macro (name value) (def name value))
     PUSH exp
     PUSH env
-    JSR tail ; get value expr
-    JSR head
+    TAIL exp, exp ; get value expr
+    HEAD exp, exp
     JSR eval
     PULL env
     PULL exp
@@ -209,7 +209,7 @@ ALIGN 4
 
     MOVE tmp, ret
     JSR freeAlloc
-    JSR head ; get name
+    HEAD exp, exp ; get name
     HEADSET ret, exp
     TAILSET env, ret
     MOVE env, ret
@@ -231,26 +231,26 @@ ALIGN 4
 .primitiveIf ; (macro (pred cons alt) (if pred cons alt))
     PUSH exp
     PUSH env
-    JSR head ; get pred
+    HEAD exp, exp ; get pred
     JSR eval
     PULL env
     PULL exp
-    JSR tail ; get (cons alt)
+    TAIL exp, exp ; get (cons alt)
     LDA #0
     CMP ret
     BEQ primitiveIf_maybealt
 .primitiveIf_eval
-    JSR head
+    HEAD exp, exp
     JMP eval
 .primitiveIf_maybealt
     CMP ret + 1
     BNE primitiveIf_eval
-    JSR tail
+    TAIL exp, exp
     JMP primitiveIf_eval
 
 ALIGN 4
 .primitiveQuote ; (macro (value) (quote value))
-    JSR head
+    HEAD exp, exp
     MOVE ret, exp
     RTS
 
@@ -266,7 +266,7 @@ ALIGN 4
     CMP exp + 1 
     BEQ nativePlus_done
 .nativePlus_add
-    JSR headTmp
+    HEAD tmp, exp
     LDY #1 ; ret += tmp
     LDA (tmp), Y
     CLC
@@ -277,7 +277,7 @@ ALIGN 4
     ADC ret + 1
     STA ret + 1
 
-    JSR tail
+    TAIL exp, exp
     JMP nativePlus_loop
 .nativePlus_done
     MOVE tmp, ret
@@ -285,7 +285,7 @@ ALIGN 4
 
 ALIGN 4
 .nativeSub
-    JSR headTmp
+    HEAD tmp, exp
     LDY #1 ; ret = [tmp]
     LDA (tmp), Y
     STA ret
@@ -293,14 +293,14 @@ ALIGN 4
     LDA (tmp), Y
     STA ret + 1
 .nativeSub_loop
-    JSR tail
+    TAIL exp, exp
     LDA #0
     CMP exp
     BNE nativeSub_cont
     CMP exp + 1
     BEQ nativeSub_done
 .nativeSub_cont
-    JSR headTmp
+    HEAD tmp, exp
     LDA ret ; ret -= tmp
     LDY #1
     SEC
@@ -318,7 +318,7 @@ ALIGN 4
 
 ALIGN 4
 .nativeDiv
-    JSR headTmp ; ret = numerator
+    HEAD tmp, exp ; ret = numerator
     LDY #1
     LDA (tmp), Y
     STA ret
@@ -326,8 +326,8 @@ ALIGN 4
     LDA (tmp), Y
     STA ret + 1
     
-    JSR tail ; tmp = denominator
-    JSR head
+    TAIL exp, exp ; tmp = denominator
+    HEAD exp, exp
     LDY #1
     LDA (exp), Y
     STA tmp
@@ -355,7 +355,7 @@ ALIGN 4
 
 ALIGN 4
 .nativeMul
-    JSR headTmp
+    HEAD tmp, exp
     LDY #1
     LDA (tmp), Y
     STA ret
@@ -363,8 +363,8 @@ ALIGN 4
     LDA (tmp), Y
     STA ret + 1
 
-    JSR tail
-    JSR head
+    TAIL exp, exp
+    HEAD exp, exp
     LDY #1
     LDA (exp), Y
     STA tmp
@@ -407,10 +407,10 @@ ALIGN 4
 
 ALIGN 4
 .nativeEq
-    JSR headTmp
+    HEAD tmp, exp
     MOVE ret, tmp
-    JSR tail
-    JSR headTmp
+    TAIL exp, exp
+    HEAD tmp, exp
     LDY #1
     LDA (tmp), Y
     CMP (ret), Y
@@ -429,10 +429,10 @@ ALIGN 4
 
 ALIGN 4
 .nativeNotEq
-    JSR headTmp
+    HEAD tmp, exp
     MOVE ret, tmp
-    JSR tail
-    JSR headTmp
+    TAIL exp, exp
+    HEAD tmp, exp
     LDY #1
     LDA (tmp), Y
     CMP (ret), Y
@@ -451,15 +451,15 @@ ALIGN 4
 
 ALIGN 4
 .nativeCar ; (fn (pair) (car pair))
-    JSR head
-    JSR headTmp
+    HEAD exp, exp
+    HEAD tmp, exp
     MOVE ret, tmp
     RTS
 
 ALIGN 4
 .nativeCdr ; (fn (pair) (cdr pair))
-    JSR head
-    JSR tail
+    HEAD exp, exp
+    TAIL exp, exp
     MOVE ret, exp
     RTS
 
@@ -467,17 +467,17 @@ ALIGN 4
 .nativeCons ; (fn (x y) (cons x y))
     JSR freeAlloc
     MOVE tmp, exp
-    JSR head
+    HEAD exp, exp
     HEADSET ret, exp
     MOVE exp, tmp
-    JSR tail
-    JSR head
+    TAIL exp, exp
+    HEAD exp, exp
     TAILSET ret, exp
     RTS
 
 ALIGN 4
 .nativePrn ; (fn (v) (prn v))
-    JSR head
+    HEAD exp, exp
     JSR print
     JSR osnewl
     LDA #0
@@ -487,7 +487,7 @@ ALIGN 4
 
 ALIGN 4
 .nativeGcd ; (fn (a b) (gcd a b))
-    JSR headTmp ; ret = a
+    HEAD tmp, exp ; ret = a
     LDY #1
     LDA (tmp), Y
     STA ret
@@ -495,8 +495,8 @@ ALIGN 4
     LDA (tmp), Y
     STA ret + 1
 
-    JSR tail ; tmp = b
-    JSR head
+    TAIL exp, exp ; tmp = b
+    HEAD exp, exp
     LDY #1
     LDA (exp), Y
     STA tmp
@@ -537,7 +537,7 @@ ALIGN 4
 
 ALIGN 4
 .nativeAbs ; (fn abs (x) (abs x))
-    JSR head
+    HEAD exp, exp
     LDY #2
     LDA (exp), Y
     BMI nativeAbs_invert
@@ -561,11 +561,11 @@ ALIGN 4
     MOVE ret, exp ; return nil
     RTS
 .nativeVdu_more
-    JSR headTmp
+    HEAD tmp, exp
     LDY #1
     LDA (tmp), Y
     JSR osasci
-    JSR tail
+    TAIL exp, exp
     JMP nativeVdu
 
 ALIGN 4
@@ -593,7 +593,7 @@ ALIGN 4
 
 ALIGN 4
 .hash ; (hash (quote boo))
-  JSR headTmp
+  HEAD tmp, exp
   LDA #0 ; ret = hash(key)
   STA ret
   LDY #3
@@ -615,10 +615,10 @@ ALIGN 4
   
 ALIGN 4
 .get ; (get obj key)
-  JSR headTmp ; ret = obj
+  HEAD tmp, exp ; ret = obj
   MOVE ret, tmp
-  JSR tail ; tmp = key
-  JSR head
+  TAIL exp, exp ; tmp = key
+  HEAD exp, exp
   MOVE tmp, exp 
   MOVE exp, ret ; exp = obj
   
@@ -638,17 +638,17 @@ ALIGN 4
 .get_walk
   LDA exp
   ORA exp + 1
-  BEQ get_notfound
+  BEQ get_find ; because get_notfound is out of range
 
   ASL ret
   BCS get_right
-  JSR head
+  HEAD exp, exp
 
   DEC ret + 1
   BNE get_walk
   JMP get_find
 .get_right
-  JSR tail
+  TAIL exp, exp
   DEC ret + 1
   BNE get_walk
 .get_find
@@ -678,12 +678,12 @@ ALIGN 4
   CMP (tmp), Y
   BNE get_next
 
-  JSR tail
+  TAIL exp, exp
   HEAD ret, exp
   RTS
 .get_next
-  JSR tail
-  JSR tail
+  TAIL exp, exp
+  TAIL exp, exp
   JMP get_find
  
 .get_notfound

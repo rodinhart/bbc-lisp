@@ -41,11 +41,11 @@
 
     PUSH exp
 
-    JSR head
+    HEAD exp, exp
     JSR print
 
     PULL exp
-    JSR tail
+    TAIL exp, exp
 
     NILL exp, printCons_loop
 
