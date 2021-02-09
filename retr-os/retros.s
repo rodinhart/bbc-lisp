@@ -8,6 +8,14 @@ osbyte = &FFF4
 ORG &1908
 
 .start
+.api_poll
+  JMP poll
+
+.threads
+  EQUB 0
+.thread_idle
+  EQUB 0
+
 .poll
   STA thread_idle
   TAY
@@ -16,36 +24,10 @@ ORG &1908
   PLA
   STA thread_hi, Y
 
-  LDA &80
+  LDA &80 ; store thread workspace
   STA workspace_lo, Y
   LDA &81
   STA workspace_hi, Y
-
-  JMP event_loop
-.threads
-  EQUB 0
-.thread_idle
-  EQUB 0
-.thread_lo
-  EQUB 0, 0, 0, 0, 0
-.thread_hi
-  EQUB 0, 0, 0, 0, 0
-.workspace_lo
-  EQUB 0, 0, 0, 0, 0
-.workspace_hi
-  EQUB 0, 0, 0, 0, 0
-.s_header
-  EQUB 12, 23, 1, 0, 0, 0, 0, 0, 0, 0, 0
-  EQUB "RETR-OS", 13, 13, "1 Stopwatch", 13, 255
-.run
-  LDY #0
-  LDA s_header, Y
-.header_loop
-  JSR osasci
-  INY
-  LDA s_header, Y
-  CMP #255
-  BNE header_loop
 
 .event_loop
   LDA #145 ; Get character from buffer
@@ -66,17 +48,17 @@ ORG &1908
   BEQ idle_nowrap
   LDY #1
 .idle_nowrap
-  LDA workspace_lo, Y
+  LDA workspace_lo, Y ; restore workspace
   STA &80
   LDA workspace_hi, Y
   STA &81
 
-  LDA thread_hi, Y
+  LDA thread_hi, Y ; restore state
   PHA
   LDA thread_lo, Y
   PHA
   TYA
-  RTS
+  RTS ; return to thread
 
 .fork
   LDY threads
@@ -85,6 +67,20 @@ ORG &1908
   TYA
   JSR clock
   JMP event_loop
+
+.s_header
+  EQUB 12, 23, 1, 0, 0, 0, 0, 0, 0, 0, 0
+  EQUB "RETR-OS", 13, 13, "1 Stopwatch", 13, 255
+.exec
+  LDY #0
+  LDA s_header, Y
+.header_loop
+  JSR osasci
+  INY
+  LDA s_header, Y
+  CMP #255
+  BNE header_loop
+  BEQ event_loop
 
 .clock_buffer
   EQUB 0, 0, 0, 0, 0
@@ -176,5 +172,13 @@ ORG &1908
   RTS
 
 .end
+.thread_lo
+  EQUB 0, 0, 0, 0, 0
+.thread_hi
+  EQUB 0, 0, 0, 0, 0
+.workspace_lo
+  EQUB 0, 0, 0, 0, 0
+.workspace_hi
+  EQUB 0, 0, 0, 0, 0
 
-SAVE "RETROS", start, end, run
+SAVE "RETROS", start, end, exec
