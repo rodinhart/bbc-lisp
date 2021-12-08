@@ -1,5 +1,6 @@
 \ http://localhost:8081/?disc1=retros.ssd&autoboot
 
+osfile = &FFDD
 osasci = &FFE3
 osnewl = &FFE7
 osword = &FFF1
@@ -10,6 +11,38 @@ ORG &1908
 .start
 .api_poll
   JMP poll
+.api_pushpc
+  PLA
+  TAX
+  PLA
+  TAY
+
+  TXA
+  CLC
+  ADC #3
+  TAX
+  TYA
+  ADC #0
+  TAY
+  
+  TYA
+  PHA
+  TXA
+  PHA
+
+  TXA
+  SEC
+  SBC #3
+  TAX
+  TYA
+  SBC #0
+  TAY
+  
+  TYA
+  PHA
+  TXA
+  PHA
+  RTS
 
 .threads
   EQUB 0
@@ -61,11 +94,16 @@ ORG &1908
   RTS ; return to thread
 
 .fork
+  LDA #&FF ; Load the named file + cat info
+  LDX #<file
+  LDY #>file
+  JSR osfile
+
   LDY threads
   INY
   STY threads
   TYA
-  JSR clock
+  JSR free
   JMP event_loop
 
 .s_header
@@ -82,94 +120,14 @@ ORG &1908
   BNE header_loop
   BEQ event_loop
 
-.clock_buffer
-  EQUB 0, 0, 0, 0, 0
-.hex_table
-  EQUS "0123456789ABCDEF"
-.clock_id
-  EQUB 0
-.clock
-  STA clock_id ; not relocatable
-  LDA #1 ; Read system clock
-  LDX #<clock_buffer
-  LDY #>clock_buffer
-  JSR osword
-  LDA clock_buffer
-  STA &80
-  LDA clock_buffer + 1
-  STA &81
-
-  LDA clock_id
-  JSR poll
-.clock_loop
-  STA clock_id ; not relocatable
-  LDA #1 ; Read system clock
-  LDX #<clock_buffer
-  LDY #>clock_buffer
-  JSR osword
-
-  LDA #31
-  JSR osasci
-  LDA #0
-  JSR osasci
-  LDA clock_id
-  ASL A
-  ASL A
-  CLC
-  ADC clock_id
-  JSR osasci
-
-  LDA clock_buffer
-  SEC
-  SBC &80
-  STA &72
-  LDA clock_buffer + 1
-  SBC &81
-  STA &73
-  JSR div100
-
-  LDA &70
-  LSR A
-  LSR A
-  LSR A
-  LSR A
-  TAY
-  LDA hex_table, Y
-  JSR osasci
-
-  LDA &70
-  AND #&F
-  TAY
-  LDA hex_table, Y
-  JSR osasci
-
-  LDA clock_id
-  JSR poll
-  JMP clock_loop ; not relocatable
-
-.div100 ; &70-&71 <- &72-73 / 10
-  LDA #0
-  STA &70
-  STA &71
-.div100_loop
-  LDA &72
-  SEC
-  SBC #100
-  STA &72
-  LDA &73
-  SBC #0
-  STA &73
-  BCC div100_done
-
-  LDA &70
-  ADC #0
-  STA &70
-  LDA &71
-  ADC #0
-  STA &71
-  JMP div100_loop
-.div100_done
-  RTS
+.file
+  EQUW file_name
+  EQUW free, 0
+  EQUD 0
+  EQUD 0
+  EQUD 0
+.file_name
+  EQUB "!STOPW", 13
 
 .end
 .thread_lo
@@ -180,5 +138,12 @@ ORG &1908
   EQUB 0, 0, 0, 0, 0
 .workspace_hi
   EQUB 0, 0, 0, 0, 0
+.free
 
 SAVE "RETROS", start, end, exec
+
+ORG &0
+.start_stopwatch
+INCLUDE "retr-os/stopwatch.s"
+.end_stopwatch
+SAVE "!STOPW", start_stopwatch, end_stopwatch

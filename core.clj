@@ -73,6 +73,12 @@
 
 (get (assoc (assoc (cons nil nil) (quote a) 2) (quote b) 3) (quote b))
 
+(def sum (fn (n) (if (!= n 0) (+ n (sum (- n 1))) 0)))
+
+(prn (time))
+(prn (sum 50))
+(prn (time))
+
 (prnX (time))
 
 (queens

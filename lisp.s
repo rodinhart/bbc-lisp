@@ -5,6 +5,7 @@
 ;; make freeAlloc a macro?
 ;; make Nil proper type and memory location?
 ;; redesign cell model: 8 bytes, no align needed for native routines
+ ; ignore mark properly, so we can mix GC memory and other memory
 ;; printDecimal arg confusion
 ;; nested expressions not reading? > 256 chars?
 ;; implement function body with multiple statements
@@ -38,6 +39,10 @@ ORG &1908
     JSR coreInit
     LDX #0 ; init stack
     PUSH ret
+
+    ; PEEK exp
+    ; JSR print
+    ; RTS
 
     ADDR sourceReg, source
 .loop
