@@ -61,6 +61,14 @@ W_PRN  = 2
 W_HALT = 3
 W_JSR = 4
 W_RTS = 5
+W_OSASCI = 6
+W_BEQ = 7
+W_ISNIL = 8
+W_DUP = 9
+W_CDR = 10
+W_JMP = 11
+W_CAR = 12
+W_DROP = 13
 
 ORG &1908
 
@@ -108,6 +116,14 @@ ORG &1908
   EQUB LO(wordHalt - 1)
   EQUB LO(wordJsr - 1)
   EQUB LO(wordRts - 1)
+  EQUB LO(wordOsasci - 1)
+  EQUB LO(wordBeq - 1)
+  EQUB LO(wordIsNil - 1)
+  EQUB LO(wordDup - 1)
+  EQUB LO(wordCdr - 1)
+  EQUB LO(wordJmp - 1)
+  EQUB LO(wordCar - 1)
+  EQUB LO(wordDrop - 1)
 .run_jumphigh
   EQUB HI(wordPush - 1)
   EQUB HI(wordAdd - 1)
@@ -115,6 +131,14 @@ ORG &1908
   EQUB HI(wordHalt - 1)
   EQUB HI(wordJsr - 1)
   EQUB HI(wordRts - 1)
+  EQUB HI(wordOsasci - 1)
+  EQUB HI(wordBeq - 1)
+  EQUB HI(wordIsNil - 1)
+  EQUB HI(wordDup - 1)
+  EQUB HI(wordCdr - 1)
+  EQUB HI(wordJmp - 1)
+  EQUB HI(wordCar - 1)
+  EQUB HI(wordDrop - 1)
 
 .wordPush
   DEX
@@ -190,22 +214,86 @@ ORG &1908
   LDX stack_ptr
   JMP run_next1
 
-.Add3
-  EQUB W_ADD
-  EQUB W_ADD
-  EQUB W_RTS
-.eleven
-  Int32 263
-.thirteen
-  Int32 1124
-.seventeen
-  Int32 170
+.wordOsasci ; TODO: make more efficient
+  PULL tos
+  LDA tos
+  JSR osasci
+  JMP run_next1
+
+.wordBeq ; TODO: make more efficient
+  PULL tos
+  LDA tos
+  BNE wordBeq_done
+  LDA tos + 1
+  BNE wordBeq_done
+
+  CLC
+  LDY #2
+  LDA (pc), Y
+  PHA
+  DEY
+  LDA (pc), Y
+  ADC pc
+  STA pc
+  PLA
+  ADC pc + 1
+  STA pc + 1
+.wordBeq_done
+  LDA #3
+  JMP run_next
+
+.wordIsNil
+  PULL tos
+  SEC
+  LDA tos
+  SBC #LO(NIL)
+  STA tos
+  LDA tos + 1
+  SBC #HI(NIL)
+  STA tos + 1
+  PUSH tos
+  JMP run_next1
+
+.wordDup ; TODO: make more efficient
+  PULL tos
+  PUSH tos
+  PUSH tos
+  JMP run_next1
+
+.wordCdr
+  PULL tos
+  LDY #2
+  LDA (tos), Y
+  STA tmp
+  INY
+  LDA (tos), Y
+  STA tmp + 1
+  PUSH tmp
+  JMP run_next1
+
+.wordJmp
+  PULL pc
+  LDA #0
+  JMP run_next
+
+.wordCar
+  PULL tos
+  LDY #0
+  LDA (tos), Y
+  STA tmp
+  INY
+  LDA (tos), Y
+  STA tmp + 1
+  PUSH tmp
+  JMP run_next1
+
+.wordDrop
+  INX
+  JMP run_next1
+
+
 .code
-  EQUB W_PUSH : EQUW eleven
-  EQUB W_PUSH : EQUW thirteen
-  EQUB W_PUSH : EQUW seventeen
-  EQUB W_PUSH : EQUW Add3 : EQUB W_JSR ; TODO Array
-  EQUB W_PRN
+  EQUB W_PUSH : EQUW printList : EQUB W_JSR
   EQUB W_HALT
 
 .printInt32
@@ -294,53 +382,20 @@ ORG &1908
   LDA printInt32_trailing
   JMP osasci
 
-; (def printList (fn [x] (if (nil? x) nil (do (prn (fst x)) (printList (rest x))))))
-; dup nil eq beq print_done dup fst prn rest jmp printList print_done: rts
+
 .printList
-  LDA #'('
-  JSR osasci
-
+  EQUB W_PUSH : EQUW '(' : EQUB W_OSASCI
 .printList_loop
-  LDA stack_low, X
-  STA tos
-  LDA stack_high, X
-  STA tos + 1
+  EQUB W_DUP, W_ISNIL, W_BEQ : EQUW 17
 
-  LDY #4
-  LDA (tos), Y
-  CMP #1
-  BEQ printList_end
+  EQUB W_DUP, W_CAR, W_PRN
+  EQUB W_CDR
+  EQUB W_DUP, W_ISNIL, W_BEQ : EQUW 4
+  EQUB W_PUSH : EQUW ' ' : EQUB W_OSASCI
+  EQUB W_PUSH : EQUW printList_loop : EQUB W_JMP
 
-  DEX
-  LDY #0
-  LDA (tos), Y
-  STA stack_low, X
-  INY
-  LDA (tos), Y
-  STA stack_high, X
-  JSR printInt32
-
-  LDA #' '
-  JSR osasci
-
-  LDA stack_low, X
-  STA tos
-  LDA stack_high, X
-  STA tos + 1
-
-  LDY #2
-  LDA (tos), Y
-  STA stack_low, X
-  INY
-  LDA (tos), Y
-  STA stack_high, X
-
-  JMP printList_loop
-.printList_end
-  INX
-  LDA #')'
-  JMP osasci
-
+  EQUB W_PUSH : EQUW ')' : EQUB W_OSASCI
+  EQUB W_DROP, W_RTS
 
 .printSymbol
   LDA stack_low, X
@@ -366,9 +421,9 @@ ORG &1908
 .data_next
   EQUW data_s, NIL: EQUB T_Cons
 .data_n
-  EQUD 640: EQUB T_Int32
+  Int32 640
 .data_s
-  EQUB "foo", 0, T_Sym
+  Int32 123
 
 .end
 .stack_ptr
