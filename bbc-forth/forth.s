@@ -88,8 +88,8 @@ ORG &1908
 .run
   LDY #0
   LDA (pc), Y
-  TAY
 
+  TAY
   LDA run_jumphigh, Y
   PHA
   LDA run_jumplow, Y
@@ -177,8 +177,55 @@ ORG &1908
   JMP run_next1
 
 .wordPrn
+  PULL tos ; TODO: implement PEEK
+  DEX ; not needed?
+  LDY #4
+  LDA (tos), Y
+
+  TAY
+  LDA wordPrn_high, Y
+  PHA
+  LDA wordPrn_low, Y
+  PHA
+  RTS
+.wordPrn_low
+  EQUB LO(wordPrn_symbol - 1)
+  EQUB LO(wordPrn_nil - 1)
+  EQUB LO(wordPrn_int32 - 1)
+  EQUB LO(wordPrn_cons - 1)
+.wordPrn_high
+  EQUB HI(wordPrn_symbol - 1)
+  EQUB HI(wordPrn_nil - 1)
+  EQUB HI(wordPrn_int32 - 1)
+  EQUB HI(wordPrn_cons - 1)
+
+.wordPrn_symbol
+.wordPrn_nil
+  PULL tos
+  LDY #0
+  LDA (tos), Y
+  JSR osasci
+  INY
+  LDA (tos), Y
+  JSR osasci
+  INY
+  LDA (tos), Y
+  JSR osasci
+  INY
+  LDA (tos), Y
+  JSR osasci
+
+  JMP run_next1
+
+.wordPrn_int32
   JSR printInt32
   JMP run_next1
+
+.wordPrn_cons
+  ADDR tmp, printList
+  PUSH tmp
+  JMP wordJsr
+
 
 .wordHalt
   JMP run_done
@@ -293,6 +340,7 @@ ORG &1908
 
 
 .code
+  EQUB W_PRN, W_HALT
   EQUB W_PUSH : EQUW printList : EQUB W_JSR
   EQUB W_HALT
 
@@ -398,11 +446,7 @@ ORG &1908
   EQUB W_DROP, W_RTS
 
 .printSymbol
-  LDA stack_low, X
-  STA tmp
-  LDA stack_high, X
-  STA tmp + 1
-  INX
+  PULL tmp
 
   LDY #0
 .printSymbol_loop
@@ -417,13 +461,13 @@ ORG &1908
 .NIL
   EQUB "nil", 0, T_Nil
 .data
-  EQUW data_n, data_next: EQUB T_Cons
+  EQUW data_s, data_next: EQUB T_Cons
 .data_next
-  EQUW data_s, NIL: EQUB T_Cons
+  EQUW data_n, NIL: EQUB T_Cons
+.data_s
+  EQUB "inc", 0, T_Sym
 .data_n
   Int32 640
-.data_s
-  Int32 123
 
 .end
 .stack_ptr
