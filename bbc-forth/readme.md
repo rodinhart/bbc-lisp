@@ -1,6 +1,6 @@
-- need branch always for relocatable loops
 - top of stack kept in memory (direct pointer access)?
 - internalize symbols for speed?
+- shortcut PUSH0 PUSH1 ?
 
 | lisp              | forth                                           | cost | after |
 | ----------------- | ----------------------------------------------- | ---- | ----- |

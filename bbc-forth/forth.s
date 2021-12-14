@@ -1,8 +1,5 @@
 \ http://localhost:8081/?disc1=forth.ssd&autoboot
 
-\ add mutates?!?
-
-
 \ OS
 osasci = &FFE3
 osnewl = &FFE7
@@ -14,7 +11,7 @@ pc = &74
 
 INCLUDE "macros.s"
 
-ORG &1940
+ORG &1908
 .start
 
 INCLUDE "types.s"
