@@ -15,9 +15,10 @@ W_DROP = 13
 W_ROT = 14
 W_NEWLINE = 15
 W_INC = 16
-W_ISLO = 17
+W_CMP = 17
 W_DEC = 18
 W_SWAP = 19
+W_BLO = 20
 
 .run
   LDY #0
@@ -61,9 +62,10 @@ W_SWAP = 19
   EQUB LO(wordRot - 1)
   EQUB LO(wordNewline - 1)
   EQUB LO(wordInc - 1)
-  EQUB LO(wordIslo - 1)
+  EQUB LO(wordCmp - 1)
   EQUB LO(wordDec - 1)
   EQUB LO(wordSwap - 1)
+  EQUB LO(wordBlo - 1)
 .run_jumphigh
   EQUB HI(wordPush - 1)
   EQUB HI(wordAdd - 1)
@@ -82,9 +84,10 @@ W_SWAP = 19
   EQUB HI(wordRot - 1)
   EQUB HI(wordNewline - 1)
   EQUB HI(wordInc - 1)
-  EQUB HI(wordIslo - 1)
+  EQUB HI(wordCmp - 1)
   EQUB HI(wordDec - 1)
   EQUB HI(wordSwap - 1)
+  EQUB HI(wordBlo - 1)
   
 .wordPush
   DEX
@@ -218,38 +221,16 @@ W_SWAP = 19
   JSR osasci
   JMP run_next1
 
-.wordBeq ; TODO: make more efficient
-  PULL tos
-  LDA tos
-  BNE wordBeq_done
-  LDA tos + 1
-  BNE wordBeq_done
-
-  CLC
-  LDY #2
-  LDA (pc), Y
-  PHA
-  DEY
-  LDA (pc), Y
-  ADC pc
-  STA pc
-  PLA
-  ADC pc + 1
-  STA pc + 1
-.wordBeq_done
-  LDA #3
-  JMP run_next
-
 .wordIsNil
   PULL tos
-  SEC
-  LDA tos
-  SBC #LO(NIL)
-  STA tos
-  LDA tos + 1
-  SBC #HI(NIL)
-  STA tos + 1
-  PUSH tos
+  LDY #4
+  LDA (tos), Y
+  CMP #T_Nil
+  PHP
+  PLA
+  STA tmp
+  STA tmp + 1
+  PUSH tmp
   JMP run_next1
 
 .wordDup ; TODO: make more efficient
@@ -348,7 +329,7 @@ W_SWAP = 19
   PUSH tmp
   JMP run_next1
 
-.wordIslo
+.wordCmp
   PULL tos
   PULL tmp
 
@@ -365,14 +346,9 @@ W_SWAP = 19
   INY
   LDA (tmp), Y
   SBC (tos), Y
-  BCS wordIslo_HS
-  LDA #0
-  STA tmp
-  STA tmp + 1
-  PUSH tmp
-  JMP run_next1
-.wordIslo_HS
-  LDA #1
+
+  PHP
+  PLA
   STA tmp
   STA tmp + 1
   PUSH tmp
@@ -428,3 +404,34 @@ W_SWAP = 19
   STA stack_high + 1, X
 
   JMP run_next1
+
+.wordBeq ; TODO: make more efficient
+  PULL tos
+  LDA tos
+  PHA
+  PLP
+  BNE wordBlo_done
+  JMP bxx_branch
+
+.wordBlo
+  PULL tos
+  LDA tos
+  PHA
+  PLP
+  BCS wordBlo_done
+
+.bxx_branch
+  CLC
+  LDY #2
+  LDA (pc), Y
+  PHA
+  DEY
+  LDA (pc), Y
+  ADC pc
+  STA pc
+  PLA
+  ADC pc + 1
+  STA pc + 1
+.wordBlo_done
+  LDA #3
+  JMP run_next

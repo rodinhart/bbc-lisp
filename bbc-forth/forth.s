@@ -12,15 +12,15 @@ tmp = &70
 tos = &72
 pc = &74
 
-INCLUDE "bbc-forth/macros.s"
+INCLUDE "macros.s"
 
 ORG &1940
 .start
 
-INCLUDE "bbc-forth/types.s"
-INCLUDE "bbc-forth/gc.s"
-INCLUDE "bbc-forth/native.s"
-INCLUDE "bbc-forth/words.s"
+INCLUDE "types.s"
+INCLUDE "gc.s"
+INCLUDE "native.s"
+INCLUDE "words.s"
 
 .printList
   EQUB W_PUSH : EQUW '(' : EQUB W_OSASCI
@@ -63,11 +63,11 @@ INCLUDE "bbc-forth/words.s"
 .code_loop
   EQUB W_DUP, W_PUSH: EQUW fib : EQUB W_JSR, W_PRN, W_NEWLINE
   EQUB W_INC
-  EQUB W_DUP, W_PUSH : EQUW data_15 : EQUB W_ISLO, W_BEQ : EQUW 2
+  EQUB W_DUP, W_PUSH : EQUW data_15 : EQUB W_CMP, W_BLO : EQUW 2
   EQUB W_DROP, W_HALT
   EQUB W_PUSH : EQUW code_loop : EQUB W_JMP
 .fib
-  EQUB W_DUP, W_PUSH : EQUW data_2 : EQUB W_ISLO, W_BEQ : EQUW 13
+  EQUB W_DUP, W_PUSH : EQUW data_2 : EQUB W_CMP, W_BLO : EQUW 13
   EQUB W_DEC, W_DUP, W_PUSH : EQUW fib : EQUB W_JSR
   EQUB W_SWAP, W_DEC, W_PUSH : EQUW fib : EQUB W_JSR
   EQUB W_ADD

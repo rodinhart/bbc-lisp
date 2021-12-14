@@ -1,1 +1,1 @@
-beebasm.exe -i ./bbc-forth/forth.s -do ../mattgodbolt-jsbeeb/discs/forth.ssd -boot Forth
+..\beebasm.exe -i ./forth.s -do ../../mattgodbolt-jsbeeb/discs/forth.ssd -boot Forth
