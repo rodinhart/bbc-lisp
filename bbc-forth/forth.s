@@ -1,7 +1,6 @@
 \ http://localhost:8081/?disc1=forth.ssd&autoboot
 
-\ top of stack kept in memory (direct pointer access)?
-\ internalize symbols for speed?
+\ add mutates?!?
 
 
 \ OS
@@ -15,10 +14,11 @@ pc = &74
 
 INCLUDE "bbc-forth/macros.s"
 
-ORG &1908
+ORG &1940
 .start
 
 INCLUDE "bbc-forth/types.s"
+INCLUDE "bbc-forth/gc.s"
 INCLUDE "bbc-forth/native.s"
 INCLUDE "bbc-forth/words.s"
 
@@ -38,34 +38,49 @@ INCLUDE "bbc-forth/words.s"
   
 
 .exec
-  LDX #0 ; init stacks
+  ; init stacks
+  LDX #0
   STX return_ptr
- 
-  ; push data
-  ADDR tmp, data
-  PUSH tmp
 
+  ; init heap
+  LDA #LO(heap_start)
+  STA heap_ptr
+  LDA #HI(heap_start)
+  STA heap_ptr + 1
+ 
   ; load code
   ADDR pc, code
   JMP run
 
-.data
-  EQUW data_s, data_next: EQUB T_Cons
-.data_next
-  EQUW data_n, NIL: EQUB T_Cons
-.data_s
-  EQUB "inc", 0, T_Sym
-.data_n
-  Int32 640
-
+.data_zero
+  Int32 0
+.data_2
+  Int32 2
+.data_15
+  Int32 16
 .code
-  EQUB W_PRN, W_HALT
+  EQUB W_PUSH: EQUW data_zero
+.code_loop
+  EQUB W_DUP, W_PUSH: EQUW fib : EQUB W_JSR, W_PRN, W_NEWLINE
+  EQUB W_INC
+  EQUB W_DUP, W_PUSH : EQUW data_15 : EQUB W_ISLO, W_BEQ : EQUW 2
+  EQUB W_DROP, W_HALT
+  EQUB W_PUSH : EQUW code_loop : EQUB W_JMP
+.fib
+  EQUB W_DUP, W_PUSH : EQUW data_2 : EQUB W_ISLO, W_BEQ : EQUW 13
+  EQUB W_DEC, W_DUP, W_PUSH : EQUW fib : EQUB W_JSR
+  EQUB W_SWAP, W_DEC, W_PUSH : EQUW fib : EQUB W_JSR
+  EQUB W_ADD
+.fib_base
+  EQUB W_RTS
 
 .end
 .stack_ptr
   EQUB 0
 .return_ptr
   EQUB 0
+.heap_ptr
+  EQUW heap_start
 ALIGN &100
 .stack_low
   SKIP 256
@@ -75,5 +90,8 @@ ALIGN &100
   SKIP 256
 .return_high
   SKIP 256
+.heap_start
+  SKIPTO &7000
+.heap_end
 
 SAVE "Forth", start, end, exec

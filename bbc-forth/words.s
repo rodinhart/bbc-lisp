@@ -12,6 +12,12 @@ W_CDR = 10
 W_JMP = 11
 W_CAR = 12
 W_DROP = 13
+W_ROT = 14
+W_NEWLINE = 15
+W_INC = 16
+W_ISLO = 17
+W_DEC = 18
+W_SWAP = 19
 
 .run
   LDY #0
@@ -52,6 +58,12 @@ W_DROP = 13
   EQUB LO(wordJmp - 1)
   EQUB LO(wordCar - 1)
   EQUB LO(wordDrop - 1)
+  EQUB LO(wordRot - 1)
+  EQUB LO(wordNewline - 1)
+  EQUB LO(wordInc - 1)
+  EQUB LO(wordIslo - 1)
+  EQUB LO(wordDec - 1)
+  EQUB LO(wordSwap - 1)
 .run_jumphigh
   EQUB HI(wordPush - 1)
   EQUB HI(wordAdd - 1)
@@ -67,6 +79,12 @@ W_DROP = 13
   EQUB HI(wordJmp - 1)
   EQUB HI(wordCar - 1)
   EQUB HI(wordDrop - 1)
+  EQUB HI(wordRot - 1)
+  EQUB HI(wordNewline - 1)
+  EQUB HI(wordInc - 1)
+  EQUB HI(wordIslo - 1)
+  EQUB HI(wordDec - 1)
+  EQUB HI(wordSwap - 1)
   
 .wordPush
   DEX
@@ -82,25 +100,44 @@ W_DROP = 13
 
 .wordAdd
   PULL tos
-  PULL tmp
+  JSR gcAlloc
+
+  LDY #0
+  LDA (tos), Y
+  STA (tmp), Y
+  INY
+  LDA (tos), Y
+  STA (tmp), Y
+  INY
+  LDA (tos), Y
+  STA (tmp), Y
+  INY
+  LDA (tos), Y
+  STA (tmp), Y
+  INY
+  LDA (tos), Y
+  STA (tmp), Y
+
+  PULL tos
+
   CLC
   LDY #0
-  LDA (tmp), Y
-  ADC (tos), Y
-  STA (tos), Y
+  LDA (tos), Y
+  ADC (tmp), Y
+  STA (tmp), Y
   INY
-  LDA (tmp), Y
-  ADC (tos), Y
-  STA (tos), Y
+  LDA (tos), Y
+  ADC (tmp), Y
+  STA (tmp), Y
   INY
-  LDA (tmp), Y
-  ADC (tos), Y
-  STA (tos), Y
+  LDA (tos), Y
+  ADC (tmp), Y
+  STA (tmp), Y
   INY
-  LDA (tmp), Y
-  ADC (tos), Y
-  STA (tos), Y
-  PUSH tos
+  LDA (tos), Y
+  ADC (tmp), Y
+  STA (tmp), Y
+  PUSH tmp
 
   JMP run_next1
 
@@ -140,7 +177,6 @@ W_DROP = 13
   ADDR tmp, printList
   PUSH tmp
   JMP wordJsr
-
 
 .wordHalt
   JMP run_done
@@ -251,4 +287,144 @@ W_DROP = 13
 
 .wordDrop
   INX
+  JMP run_next1
+
+.wordRot
+  LDA stack_low, X
+  STA tmp
+  LDA stack_high, X
+  STA tmp + 1
+
+  LDA stack_low + 2, X
+  STA stack_low, X
+  LDA stack_high + 2, X
+  STA stack_high, X
+
+  LDA stack_low + 1, X
+  STA stack_low + 2, X
+  LDA stack_high + 1, X
+  STA stack_high + 2, X
+
+  LDA tmp
+  STA stack_low + 1, X
+  LDA tmp + 1
+  STA stack_high + 1, X
+
+  JMP run_next1
+
+.wordNewline
+  JSR osnewl
+  JMP run_next1
+
+.wordInc
+  PULL tos
+
+  CLC
+  LDY #0
+  LDA (tos), Y
+  ADC #1
+  STA (tmp), Y
+
+  INY
+  LDA (tos), Y
+  ADC #0
+  STA (tmp), Y
+
+  INY
+  LDA (tos), Y
+  ADC #0
+  STA (tmp), Y
+
+  INY
+  LDA (tos), Y
+  ADC #0
+  STA (tmp), Y
+
+  INY
+  LDA #T_Int32
+  STA (tmp), Y
+  INY
+
+  PUSH tmp
+  JMP run_next1
+
+.wordIslo
+  PULL tos
+  PULL tmp
+
+  SEC
+  LDY #0
+  LDA (tmp), Y
+  SBC (tos), Y
+  INY
+  LDA (tmp), Y
+  SBC (tos), Y
+  INY
+  LDA (tmp), Y
+  SBC (tos), Y
+  INY
+  LDA (tmp), Y
+  SBC (tos), Y
+  BCS wordIslo_HS
+  LDA #0
+  STA tmp
+  STA tmp + 1
+  PUSH tmp
+  JMP run_next1
+.wordIslo_HS
+  LDA #1
+  STA tmp
+  STA tmp + 1
+  PUSH tmp
+  JMP run_next1
+
+.wordDec
+  PULL tos
+  JSR gcAlloc
+
+  SEC
+  LDY #0
+  LDA (tos), Y
+  SBC #1
+  STA (tmp), Y
+
+  INY
+  LDA (tos), Y
+  SBC #0
+  STA (tmp), Y
+
+  INY
+  LDA (tos), Y
+  SBC #0
+  STA (tmp), Y
+
+  INY
+  LDA (tos), Y
+  SBC #0
+  STA (tmp), Y
+
+  INY
+  LDA #T_Int32
+  STA (tmp), Y
+  INY
+
+  PUSH tmp
+  JMP run_next1
+
+.wordSwap
+  LDA stack_low, X
+  STA tmp
+  LDA stack_high, X
+  STA tmp + 1
+
+  LDA stack_low + 1, X
+  STA stack_low, X
+  LDA stack_high + 1, X
+  STA stack_high, X
+
+  LDA tmp
+  STA stack_low + 1, X
+  LDA tmp + 1
+  STA stack_high + 1, X
+
   JMP run_next1
