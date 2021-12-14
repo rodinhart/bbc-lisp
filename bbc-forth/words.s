@@ -19,6 +19,8 @@ W_CMP = 17
 W_DEC = 18
 W_SWAP = 19
 W_BLO = 20
+W_B = 21
+W_BHS = 22
 
 .run
   LDY #0
@@ -66,6 +68,8 @@ W_BLO = 20
   EQUB LO(wordDec - 1)
   EQUB LO(wordSwap - 1)
   EQUB LO(wordBlo - 1)
+  EQUB LO(wordB - 1)
+  EQUB LO(wordBhs - 1)
 .run_jumphigh
   EQUB HI(wordPush - 1)
   EQUB HI(wordAdd - 1)
@@ -88,6 +92,8 @@ W_BLO = 20
   EQUB HI(wordDec - 1)
   EQUB HI(wordSwap - 1)
   EQUB HI(wordBlo - 1)
+  EQUB HI(wordB - 1)
+  EQUB HI(wordBhs - 1)
   
 .wordPush
   DEX
@@ -410,17 +416,18 @@ W_BLO = 20
   LDA tos
   PHA
   PLP
-  BNE wordBlo_done
-  JMP bxx_branch
+  BNE wordB_done
+  JMP wordB
 
 .wordBlo
   PULL tos
   LDA tos
   PHA
   PLP
-  BCS wordBlo_done
+  BCS wordB_done
+  JMP wordB
 
-.bxx_branch
+.wordB
   CLC
   LDY #2
   LDA (pc), Y
@@ -432,6 +439,14 @@ W_BLO = 20
   PLA
   ADC pc + 1
   STA pc + 1
-.wordBlo_done
+.wordB_done
   LDA #3
   JMP run_next
+
+.wordBhs
+  PULL tos
+  LDA tos
+  PHA
+  PLP
+  BCC wordB_done
+  JMP wordB

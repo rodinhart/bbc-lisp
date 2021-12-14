@@ -63,11 +63,12 @@ INCLUDE "words.s"
 .code_loop
   EQUB W_DUP, W_PUSH: EQUW fib : EQUB W_JSR, W_PRN, W_NEWLINE
   EQUB W_INC
-  EQUB W_DUP, W_PUSH : EQUW data_15 : EQUB W_CMP, W_BLO : EQUW 2
+  EQUB W_DUP, W_PUSH : EQUW data_15 : EQUB W_CMP, W_BLO : EQUW code_loop - code_done
+.code_done
   EQUB W_DROP, W_HALT
-  EQUB W_PUSH : EQUW code_loop : EQUB W_JMP
 .fib
-  EQUB W_DUP, W_PUSH : EQUW data_2 : EQUB W_CMP, W_BLO : EQUW 13
+  EQUB W_DUP, W_PUSH : EQUW data_2 : EQUB W_CMP, W_BLO : EQUW fib_base - fib_recurse
+.fib_recurse
   EQUB W_DEC, W_DUP, W_PUSH : EQUW fib : EQUB W_JSR
   EQUB W_SWAP, W_DEC, W_PUSH : EQUW fib : EQUB W_JSR
   EQUB W_ADD

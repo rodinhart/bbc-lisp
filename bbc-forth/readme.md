@@ -1,6 +1,3 @@
-- result of compare etc to be flags?
-- CMP BLO or CMP BEQ
-
 - need branch always for relocatable loops
 - top of stack kept in memory (direct pointer access)?
 - internalize symbols for speed?
