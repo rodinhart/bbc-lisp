@@ -1,26 +1,27 @@
-W_PUSH = 0
-W_ADD  = 1
+W_PUSH = 0 ; args
+W_ADD  = 1 ; allocs
 W_PRN  = 2
 W_HALT = 3
-W_JSR = 4
+W_JSR = 4 ; args
 W_RTS = 5
 W_OSASCI = 6
-W_BEQ = 7
+W_BEQ = 7 ; args
 W_ISNIL = 8
 W_DUP = 9
 W_CDR = 10
-W_JMP = 11
+W_JMP = 11 ; args
 W_CAR = 12
 W_DROP = 13
 W_ROT = 14
 W_NEWLINE = 15
-W_INC = 16
+W_INC = 16 ; allocs
 W_CMP = 17
-W_DEC = 18
+W_DEC = 18 ; allocs
 W_SWAP = 19
 W_BLO = 20
 W_B = 21
 W_BHS = 22
+W_READ = 23
 
 .run
   LDY #0
@@ -70,6 +71,7 @@ W_BHS = 22
   EQUB LO(wordBlo - 1)
   EQUB LO(wordB - 1)
   EQUB LO(wordBhs - 1)
+  EQUB LO(wordRead - 1)
 .run_jumphigh
   EQUB HI(wordPush - 1)
   EQUB HI(wordAdd - 1)
@@ -94,6 +96,7 @@ W_BHS = 22
   EQUB HI(wordBlo - 1)
   EQUB HI(wordB - 1)
   EQUB HI(wordBhs - 1)
+  EQUB HI(wordRead - 1)
   
 .wordPush
   DEX
@@ -450,3 +453,7 @@ W_BHS = 22
   PLP
   BCC wordB_done
   JMP wordB
+
+.wordRead
+  JSR read
+  JMP run_next1

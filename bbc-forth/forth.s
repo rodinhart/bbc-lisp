@@ -8,6 +8,8 @@ osnewl = &FFE7
 tmp = &70
 tos = &72
 pc = &74
+adr = &76
+read_cursor = &7F
 
 INCLUDE "macros.s"
 
@@ -17,22 +19,9 @@ ORG &1908
 INCLUDE "types.s"
 INCLUDE "gc.s"
 INCLUDE "native.s"
+INCLUDE "read.s"
 INCLUDE "words.s"
-
-.printList
-  EQUB W_PUSH : EQUW '(' : EQUB W_OSASCI
-.printList_loop
-  EQUB W_DUP, W_ISNIL, W_BEQ : EQUW 17
-
-  EQUB W_DUP, W_CAR, W_PRN
-  EQUB W_CDR
-  EQUB W_DUP, W_ISNIL, W_BEQ : EQUW 4
-  EQUB W_PUSH : EQUW ' ' : EQUB W_OSASCI
-  EQUB W_PUSH : EQUW printList_loop : EQUB W_JMP
-
-  EQUB W_PUSH : EQUW ')' : EQUB W_OSASCI
-  EQUB W_DROP, W_RTS
-  
+INCLUDE "lib.s"  
 
 .exec
   ; init stacks
@@ -45,32 +34,16 @@ INCLUDE "words.s"
   LDA #HI(heap_start)
   STA heap_ptr + 1
  
-  ; load code
+  ; main
+  ADDR tmp, text
+  PUSH tmp
   ADDR pc, code
   JMP run
 
-.data_zero
-  Int32 0
-.data_2
-  Int32 2
-.data_15
-  Int32 16
+.text
+  EQUB "(+ 3 4)", 0
 .code
-  EQUB W_PUSH: EQUW data_zero
-.code_loop
-  EQUB W_DUP, W_PUSH: EQUW fib : EQUB W_JSR, W_PRN, W_NEWLINE
-  EQUB W_INC
-  EQUB W_DUP, W_PUSH : EQUW data_15 : EQUB W_CMP, W_BLO : EQUW code_loop - code_done
-.code_done
-  EQUB W_DROP, W_HALT
-.fib
-  EQUB W_DUP, W_PUSH : EQUW data_2 : EQUB W_CMP, W_BLO : EQUW fib_base - fib_recurse
-.fib_recurse
-  EQUB W_DEC, W_DUP, W_PUSH : EQUW fib : EQUB W_JSR
-  EQUB W_SWAP, W_DEC, W_PUSH : EQUW fib : EQUB W_JSR
-  EQUB W_ADD
-.fib_base
-  EQUB W_RTS
+  EQUB W_READ, W_PRN, W_HALT
 
 .end
 .stack_ptr

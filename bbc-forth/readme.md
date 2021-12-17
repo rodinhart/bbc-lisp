@@ -1,3 +1,4 @@
+- should read be a word?
 - top of stack kept in memory (direct pointer access)?
 - internalize symbols for speed?
 - shortcut PUSH0 PUSH1 ?

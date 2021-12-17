@@ -14,12 +14,10 @@
   CLC
   LDA heap_ptr
   STA tmp
-   STA &76
   ADC #5
   STA heap_ptr
   LDA heap_ptr + 1
   STA tmp + 1
-   STA &77
   ADC #0
   STA heap_ptr + 1
   RTS
