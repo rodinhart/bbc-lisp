@@ -492,7 +492,25 @@ W_SET = 26
   EQUB HI(wordCompile_cons - 1)
 
 .wordCompile_symbol
-  ;PULL tos
+  PULL tos
+  JSR gcAlloc
+  LDA #W_PUSH
+  LDY #0
+  STA (tmp), Y
+  LDA tos
+  INY
+  STA (tmp), Y
+  LDA tos + 1
+  INY
+  STA (tmp), Y
+  LDA #W_GET
+  INY
+  STA (tmp), Y
+  LDA #W_RTS
+  INY
+  STA (tmp), Y
+  PUSH tmp
+  JMP run_next1
 
 
 .wordCompile_nil

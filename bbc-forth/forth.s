@@ -48,17 +48,14 @@ INCLUDE "lib.s"
   JMP run
 
 .text
-  EQUB "xy", 0
+  EQUB "zc", 0
 .sym_z
   EQUB "z", 0, 0, 0, T_Sym
 .code
   EQUB W_PUSH : EQUW sym_z : EQUB W_PUSH : EQUW data_42 : EQUB W_SET
-  EQUB W_PUSH : EQUW data_x : EQUB W_GET, W_PRN, W_HALT
-  ;EQUB W_READ, W_COMPILE, W_JSR, W_PRN, W_HALT
+  EQUB W_PUSH : EQUW text : EQUB W_READ, W_COMPILE, W_JSR, W_PRN, W_HALT
 .data_42
   Int32 42
-.data_x
-  EQUB "z", 0, 0, 0, T_Sym
 
 .end
 .stack_ptr
