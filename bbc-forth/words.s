@@ -22,6 +22,9 @@ W_BLO = 20
 W_B = 21
 W_BHS = 22
 W_READ = 23
+W_COMPILE = 24
+W_GET = 25
+W_SET = 26
 
 .run
   LDY #0
@@ -72,6 +75,9 @@ W_READ = 23
   EQUB LO(wordB - 1)
   EQUB LO(wordBhs - 1)
   EQUB LO(wordRead - 1)
+  EQUB LO(wordCompile - 1)
+  EQUB LO(wordGet - 1)
+  EQUB LO(wordSet - 1)
 .run_jumphigh
   EQUB HI(wordPush - 1)
   EQUB HI(wordAdd - 1)
@@ -97,6 +103,9 @@ W_READ = 23
   EQUB HI(wordB - 1)
   EQUB HI(wordBhs - 1)
   EQUB HI(wordRead - 1)
+  EQUB HI(wordCompile - 1)
+  EQUB HI(wordGet - 1)
+  EQUB HI(wordSet - 1)
   
 .wordPush
   DEX
@@ -456,4 +465,168 @@ W_READ = 23
 
 .wordRead
   JSR read
+  JMP run_next1
+
+
+.wordCompile
+  PULL tos
+  DEX
+  LDY #4
+  LDA (tos), Y
+
+  TAY
+  LDA wordCompile_high, Y
+  PHA
+  LDA wordCompile_low, Y
+  PHA
+  RTS
+.wordCompile_low
+  EQUB LO(wordCompile_symbol - 1)
+  EQUB LO(wordCompile_nil - 1)
+  EQUB LO(wordCompile_int32 - 1)
+  EQUB LO(wordCompile_cons - 1)
+.wordCompile_high
+  EQUB HI(wordCompile_symbol - 1)
+  EQUB HI(wordCompile_nil - 1)
+  EQUB HI(wordCompile_int32 - 1)
+  EQUB HI(wordCompile_cons - 1)
+
+.wordCompile_symbol
+  ;PULL tos
+
+
+.wordCompile_nil
+.wordCompile_int32
+  PULL tos
+  JSR gcAlloc
+  LDA #W_PUSH
+  LDY #0
+  STA (tmp), Y
+  LDA tos
+  INY
+  STA (tmp), Y
+  LDA tos + 1
+  INY
+  STA (tmp), Y
+  LDA #W_RTS
+  INY
+  STA (tmp), Y
+  PUSH tmp
+  JMP run_next1
+
+.wordCompile_cons
+  RTS
+
+
+.wordGet
+  PULL tos
+  LDA env
+  STA adr
+  LDA env + 1
+  STA adr + 1
+.wordGet_loop
+  LDY #4
+  LDA (adr), Y
+  CMP #T_Nil
+  BEQ wordGet_done
+  LDY #0
+  LDA (adr), Y
+  STA tmp
+  INY
+  LDA (adr), Y
+  STA tmp + 1
+
+  LDY #0
+  LDA (tmp), Y
+  CMP (tos), Y
+  BNE wordGet_next
+  INY
+  LDA (tmp), Y
+  CMP (tos), Y
+  BNE wordGet_next
+  INY
+  LDA (tmp), Y
+  CMP (tos), Y
+  BNE wordGet_next
+  INY
+  LDA (tmp), Y
+  CMP (tos), Y
+  BNE wordGet_next
+  LDY #2
+  LDA (adr), Y
+  STA tmp
+  INY
+  LDA (adr), Y
+  STA tmp + 1
+  LDY #0
+  LDA (tmp), Y
+  STA adr
+  INY
+  LDA (tmp), Y
+  STA adr + 1
+  PUSH adr
+  JMP run_next1  
+.wordGet_next
+  LDY #2
+  LDA (adr), Y
+  STA tmp
+  INY
+  LDA (adr), Y
+  STA tmp + 1
+  LDA (tmp), Y
+  STA adr + 1
+  DEY
+  LDA (tmp), Y
+  STA adr
+  JMP wordGet_loop
+.wordGet_done
+  PUSH adr
+  JMP run_next1
+
+
+.wordSet
+  PULL tos
+  JSR gcAlloc
+  LDA tos
+  LDY #0
+  STA (tmp), Y
+  LDA tos + 1
+  INY
+  STA (tmp), Y
+  LDA env
+  INY
+  STA (tmp), Y
+  LDA env + 1
+  INY
+  STA (tmp), Y
+  LDA #T_Cons
+  INY
+  STA (tmp), Y
+  LDA tmp
+  STA env
+  LDA tmp + 1
+  STA env + 1
+
+  PULL tos
+  JSR gcAlloc
+  LDA tos
+  LDY #0
+  STA (tmp), Y
+  LDA tos + 1
+  INY
+  STA (tmp), Y
+  LDA env
+  INY
+  STA (tmp), Y
+  LDA env + 1
+  INY
+  STA (tmp), Y
+  LDA #T_Cons
+  INY
+  STA (tmp), Y
+  LDA tmp
+  STA env
+  LDA tmp + 1
+  STA env + 1
+  
   JMP run_next1

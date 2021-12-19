@@ -9,6 +9,7 @@ tmp = &70
 tos = &72
 pc = &74
 adr = &76
+env = &78
 read_cursor = &7F
 
 INCLUDE "macros.s"
@@ -33,6 +34,12 @@ INCLUDE "lib.s"
   STA heap_ptr
   LDA #HI(heap_start)
   STA heap_ptr + 1
+
+  ; init env
+  LDA #LO(NIL)
+  STA env
+  LDA #HI(NIL)
+  STA env + 1
  
   ; main
   ADDR tmp, text
@@ -41,9 +48,17 @@ INCLUDE "lib.s"
   JMP run
 
 .text
-  EQUB "(+ 3 4)", 0
+  EQUB "xy", 0
+.sym_z
+  EQUB "z", 0, 0, 0, T_Sym
 .code
-  EQUB W_READ, W_PRN, W_HALT
+  EQUB W_PUSH : EQUW sym_z : EQUB W_PUSH : EQUW data_42 : EQUB W_SET
+  EQUB W_PUSH : EQUW data_x : EQUB W_GET, W_PRN, W_HALT
+  ;EQUB W_READ, W_COMPILE, W_JSR, W_PRN, W_HALT
+.data_42
+  Int32 42
+.data_x
+  EQUB "z", 0, 0, 0, T_Sym
 
 .end
 .stack_ptr
@@ -51,7 +66,7 @@ INCLUDE "lib.s"
 .return_ptr
   EQUB 0
 .heap_ptr
-  EQUW heap_start
+  EQUW 0
 ALIGN &100
 .stack_low
   SKIP 256
