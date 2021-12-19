@@ -1,4 +1,4 @@
-- should read be a word?
+- PUSH address of Int32 is not relocatable
 - top of stack kept in memory (direct pointer access)?
 - internalize symbols for speed?
 - shortcut PUSH0 PUSH1 ?

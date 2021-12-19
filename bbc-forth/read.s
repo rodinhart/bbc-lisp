@@ -58,37 +58,37 @@
   CMP #':'
   BCC readNumber_loop
 .readNumber_done
-  JSR gcAlloc
   LDA tos
   LDY #0
-  STA (tmp), Y
+  STA (hea), Y
   LDA tos + 1
   INY
-  STA (tmp), Y
+  STA (hea), Y
   LDA #0
   INY
-  STA (tmp), Y
+  STA (hea), Y
   INY
-  STA (tmp), Y
+  STA (hea), Y
   LDA #T_Int32
   INY
-  STA (tmp), Y
-  PUSH tmp
+  STA (hea), Y
+  INY
+  PUSH hea
+  JSR gcApply
   RTS
 
 .readSymbol
-  JSR gcAlloc
   LDA #0
   LDY #0
-  STA (tmp), Y
+  STA (hea), Y
   INY
-  STA (tmp), Y
+  STA (hea), Y
   INY
-  STA (tmp), Y
+  STA (hea), Y
   INY
-  STA (tmp), Y
+  STA (hea), Y
   INY
-  STA (tmp), Y
+  STA (hea), Y
 .readSymbol_loop
   LDY read_cursor
   LDA (adr), Y
@@ -98,34 +98,41 @@
   BEQ readSymbol_done
   PHA
   LDY #4
-  LDA (tmp), Y
+  LDA (hea), Y
   TAY
   PLA
-  STA (tmp), Y
+  STA (hea), Y
   INY
   TYA
   LDY #4
-  STA (tmp), Y
+  STA (hea), Y
   INC read_cursor
   JMP readSymbol_loop
 .readSymbol_done
   LDA #T_Sym
   LDY #4
-  STA (tmp), Y
-  PUSH tmp
+  STA (hea), Y
+  INY
+  PUSH hea
+  JSR gcApply
   RTS
 
 
 .readList
   INC read_cursor ; skip (
-  JSR gcAlloc
   LDA #LO(NIL)
   LDY #2
-  STA (tmp), Y
+  STA (hea), Y
   LDA #HI(NIL)
   INY
-  STA (tmp), Y
-  PUSH tmp
+  STA (hea), Y
+  PUSH hea
+  LDA hea
+  STA tmp
+  LDA hea + 1
+  STA tmp + 1
+  LDY #5
+  JSR gcApply
 .readList_loop
   JSR readWS
    LDY read_cursor
@@ -133,33 +140,38 @@
    CMP #')'
    BEQ readList_done
 
-   PUSH tmp
+   PUSH tmp ; push hea?
    JSR readAny
-   JSR gcAlloc ; cons
    LDA #T_Cons
    LDY #4
-   STA (tmp), Y
+   STA (hea), Y
    LDA #HI(NIL)
    DEY
-   STA (tmp), Y
+   STA (hea), Y
    LDA #LO(NIL)
    DEY
-   STA (tmp), Y
+   STA (hea), Y
    PULL tos ; set head
    LDA tos + 1
    DEY
-   STA (tmp), Y
+   STA (hea), Y
    LDA tos
    DEY
-   STA (tmp), Y
+   STA (hea), Y
 
    PULL tos
-   LDA tmp
+   LDA hea
    LDY #2
    STA (tos), Y
-   LDA tmp + 1
+   LDA hea + 1
    INY
    STA (tos), Y
+   LDA hea
+   STA tmp
+   LDA hea + 1
+   STA tmp + 1
+   LDY #5
+   JSR gcApply
    JMP readList_loop
 .readList_done
   INC read_cursor ; skip )

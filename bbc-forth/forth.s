@@ -10,6 +10,7 @@ tos = &72
 pc = &74
 adr = &76
 env = &78
+hea = &7A
 read_cursor = &7F
 
 INCLUDE "macros.s"
@@ -31,9 +32,9 @@ INCLUDE "lib.s"
 
   ; init heap
   LDA #LO(heap_start)
-  STA heap_ptr
+  STA hea
   LDA #HI(heap_start)
-  STA heap_ptr + 1
+  STA hea + 1
 
   ; init env
   LDA #LO(NIL)
@@ -42,13 +43,11 @@ INCLUDE "lib.s"
   STA env + 1
  
   ; main
-  ADDR tmp, text
-  PUSH tmp
   ADDR pc, code
   JMP run
 
 .text
-  EQUB "zc", 0
+  EQUB "z", 0
 .sym_z
   EQUB "z", 0, 0, 0, T_Sym
 .code
@@ -62,8 +61,6 @@ INCLUDE "lib.s"
   EQUB 0
 .return_ptr
   EQUB 0
-.heap_ptr
-  EQUW 0
 ALIGN &100
 .stack_low
   SKIP 256

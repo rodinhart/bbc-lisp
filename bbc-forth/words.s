@@ -121,44 +121,46 @@ W_SET = 26
 
 .wordAdd
   PULL tos
-  JSR gcAlloc
 
   LDY #0
   LDA (tos), Y
-  STA (tmp), Y
+  STA (hea), Y
   INY
   LDA (tos), Y
-  STA (tmp), Y
+  STA (hea), Y
   INY
   LDA (tos), Y
-  STA (tmp), Y
+  STA (hea), Y
   INY
   LDA (tos), Y
-  STA (tmp), Y
+  STA (hea), Y
   INY
   LDA (tos), Y
-  STA (tmp), Y
+  STA (hea), Y
 
   PULL tos
 
   CLC
   LDY #0
   LDA (tos), Y
-  ADC (tmp), Y
-  STA (tmp), Y
+  ADC (hea), Y
+  STA (hea), Y
   INY
   LDA (tos), Y
-  ADC (tmp), Y
-  STA (tmp), Y
+  ADC (hea), Y
+  STA (hea), Y
   INY
   LDA (tos), Y
-  ADC (tmp), Y
-  STA (tmp), Y
+  ADC (hea), Y
+  STA (hea), Y
   INY
   LDA (tos), Y
-  ADC (tmp), Y
-  STA (tmp), Y
-  PUSH tmp
+  ADC (hea), Y
+  STA (hea), Y
+  PUSH hea
+
+  LDY #5
+  JSR gcApply
 
   JMP run_next1
 
@@ -374,35 +376,37 @@ W_SET = 26
 
 .wordDec
   PULL tos
-  JSR gcAlloc
 
   SEC
   LDY #0
   LDA (tos), Y
   SBC #1
-  STA (tmp), Y
+  STA (hea), Y
 
   INY
   LDA (tos), Y
   SBC #0
-  STA (tmp), Y
+  STA (hea), Y
 
   INY
   LDA (tos), Y
   SBC #0
-  STA (tmp), Y
+  STA (hea), Y
 
   INY
   LDA (tos), Y
   SBC #0
-  STA (tmp), Y
+  STA (hea), Y
 
   INY
   LDA #T_Int32
-  STA (tmp), Y
-  INY
+  STA (hea), Y
 
-  PUSH tmp
+  PUSH hea
+
+  INY
+  JSR gcApply
+
   JMP run_next1
 
 .wordSwap
@@ -493,7 +497,6 @@ W_SET = 26
 
 .wordCompile_symbol
   PULL tos
-  JSR gcAlloc
   LDA #W_PUSH
   LDY #0
   STA (tmp), Y
@@ -510,13 +513,14 @@ W_SET = 26
   INY
   STA (tmp), Y
   PUSH tmp
+  INY
+  JSR gcApply
   JMP run_next1
 
 
 .wordCompile_nil
 .wordCompile_int32
   PULL tos
-  JSR gcAlloc
   LDA #W_PUSH
   LDY #0
   STA (tmp), Y
@@ -530,6 +534,8 @@ W_SET = 26
   INY
   STA (tmp), Y
   PUSH tmp
+  INY
+  JSR gcApply
   JMP run_next1
 
 .wordCompile_cons
@@ -604,47 +610,51 @@ W_SET = 26
 
 .wordSet
   PULL tos
-  JSR gcAlloc
   LDA tos
   LDY #0
-  STA (tmp), Y
+  STA (hea), Y
   LDA tos + 1
   INY
-  STA (tmp), Y
+  STA (hea), Y
   LDA env
   INY
-  STA (tmp), Y
+  STA (hea), Y
   LDA env + 1
   INY
-  STA (tmp), Y
+  STA (hea), Y
   LDA #T_Cons
   INY
-  STA (tmp), Y
-  LDA tmp
+  STA (hea), Y
+  LDA hea
   STA env
-  LDA tmp + 1
+  LDA hea + 1
   STA env + 1
+ 
+  INY
+  JSR gcApply
 
   PULL tos
-  JSR gcAlloc
   LDA tos
   LDY #0
-  STA (tmp), Y
+  STA (hea), Y
   LDA tos + 1
   INY
-  STA (tmp), Y
+  STA (hea), Y
   LDA env
   INY
-  STA (tmp), Y
+  STA (hea), Y
   LDA env + 1
   INY
-  STA (tmp), Y
+  STA (hea), Y
   LDA #T_Cons
   INY
-  STA (tmp), Y
-  LDA tmp
+  STA (hea), Y
+  LDA hea
   STA env
-  LDA tmp + 1
+  LDA hea + 1
   STA env + 1
+
+  INY
+  JSR gcApply
   
   JMP run_next1
