@@ -539,7 +539,43 @@ W_SET = 26
   JMP run_next1
 
 .wordCompile_cons
-  RTS
+  PULL tos
+  CDR tos, tos ; ignore +/op for now
+  CAR tmp, tos
+  LDA #W_PUSH
+  LDY #0
+  STA (hea), Y
+  LDA tmp
+  INY
+  STA (hea), Y
+  LDA tmp + 1
+  INY
+  STA (hea), Y
+
+  CDR tos, tos
+  CAR tmp, tos
+  LDA #W_PUSH
+  LDY #3
+  STA (hea), Y
+  LDA tmp
+  INY
+  STA (hea), Y
+  LDA tmp + 1
+  INY
+  STA (hea), Y
+
+  LDA #W_ADD
+  INY
+  STA (hea), Y
+
+  LDA #W_RTS
+  INY
+  STA (hea), Y
+  
+  PUSH hea
+  INY
+  JSR gcApply
+  JMP run_next1
 
 
 .wordGet

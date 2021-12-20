@@ -47,14 +47,16 @@ INCLUDE "lib.s"
   JMP run
 
 .text
-  EQUB "z", 0
-.sym_z
-  EQUB "z", 0, 0, 0, T_Sym
+  EQUB "(+ 3 4)", 0
+.num3
+  Int32 3
+.num4
+  Int32 4
+.compiled
+  EQUB W_PUSH : EQUW num3 : EQUB W_PUSH : EQUW num4 : EQUB W_ADD, W_RTS
 .code
-  EQUB W_PUSH : EQUW sym_z : EQUB W_PUSH : EQUW data_42 : EQUB W_SET
+  ;EQUB W_PUSH : EQUW compiled : EQUB W_JSR : EQUB W_PRN, W_HALT
   EQUB W_PUSH : EQUW text : EQUB W_READ, W_COMPILE, W_JSR, W_PRN, W_HALT
-.data_42
-  Int32 42
 
 .end
 .stack_ptr
