@@ -21,7 +21,6 @@ ORG &1908
 INCLUDE "types.s"
 INCLUDE "gc.s"
 INCLUDE "native.s"
-INCLUDE "read.s"
 INCLUDE "words.s"
 INCLUDE "lib.s"  
 
@@ -48,15 +47,9 @@ INCLUDE "lib.s"
 
 .text
   EQUB "(+ 3 4)", 0
-.num3
-  Int32 3
-.num4
-  Int32 4
-.compiled
-  EQUB W_PUSH : EQUW num3 : EQUB W_PUSH : EQUW num4 : EQUB W_ADD, W_RTS
 .code
-  ;EQUB W_PUSH : EQUW compiled : EQUB W_JSR : EQUB W_PRN, W_HALT
-  EQUB W_PUSH : EQUW text : EQUB W_READ, W_COMPILE, W_JSR, W_PRN, W_HALT
+  EQUB W_PUSH : EQUW text
+  EQUB W_READ, W_COMPILE, W_JSR, W_PRN, W_HALT
 
 .end
 .stack_ptr
