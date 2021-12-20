@@ -25,20 +25,17 @@
   PULL tos
   LDA #W_PUSH
   LDY #0
-  STA (tmp), Y
+  STA (hea), Y
   LDA tos
   INY
-  STA (tmp), Y
+  STA (hea), Y
   LDA tos + 1
   INY
-  STA (tmp), Y
+  STA (hea), Y
   LDA #W_GET
   INY
-  STA (tmp), Y
-  LDA #W_RTS
-  INY
-  STA (tmp), Y
-  PUSH tmp
+  STA (hea), Y
+  PUSH hea
   INY
   JSR gcApply
   RTS
@@ -49,56 +46,41 @@
   PULL tos
   LDA #W_PUSH
   LDY #0
-  STA (tmp), Y
+  STA (hea), Y
   LDA tos
   INY
-  STA (tmp), Y
+  STA (hea), Y
   LDA tos + 1
   INY
-  STA (tmp), Y
-  LDA #W_RTS
-  INY
-  STA (tmp), Y
-  PUSH tmp
+  STA (hea), Y
+  PUSH hea
   INY
   JSR gcApply
   RTS
 
-.wordCompile_cons
+.wordCompile_cons ; e.g. (+ x y)
   PULL tos
   CDR tos, tos ; ignore +/op for now
-  CAR tmp, tos
-  LDA #W_PUSH
-  LDY #0
-  STA (hea), Y
-  LDA tmp
-  INY
-  STA (hea), Y
-  LDA tmp + 1
-  INY
-  STA (hea), Y
 
+  PUSH hea ; push future result
+
+  PUSH tos ; remember (x y)
+  CAR tmp, tos ; compile x
+  PUSH tmp
+  JSR compile
+  PULL tmp ; discard partial result
+
+  PULL tos
   CDR tos, tos
-  CAR tmp, tos
-  LDA #W_PUSH
-  LDY #3
-  STA (hea), Y
-  LDA tmp
-  INY
-  STA (hea), Y
-  LDA tmp + 1
-  INY
-  STA (hea), Y
+  CAR tmp, tos ; compile y
+  PUSH tmp
+  JSR compile
+  PULL tmp ; discard partial result
 
   LDA #W_ADD
-  INY
-  STA (hea), Y
-
-  LDA #W_RTS
-  INY
+  LDY #0
   STA (hea), Y
   
-  PUSH hea
   INY
   JSR gcApply
   RTS

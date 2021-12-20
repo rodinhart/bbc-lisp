@@ -475,8 +475,13 @@ W_SET = 26
   JMP run_next1
 
 
-.wordCompile
+.wordCompile ; push hea first?
   JSR compile
+  LDA #W_RTS
+  LDY #0
+  STA (hea), Y
+  INY
+  JSR gcApply
   JMP run_next1
 
 
