@@ -476,6 +476,9 @@ W_SET = 26
 
 
 .wordCompile ; push hea first?
+  PULL tmp
+  PUSH hea
+  PUSH tmp
   JSR compile
   LDA #W_RTS
   LDY #0

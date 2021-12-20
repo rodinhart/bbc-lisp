@@ -35,7 +35,6 @@
   LDA #W_GET
   INY
   STA (hea), Y
-  PUSH hea
   INY
   JSR gcApply
   RTS
@@ -53,7 +52,6 @@
   LDA tos + 1
   INY
   STA (hea), Y
-  PUSH hea
   INY
   JSR gcApply
   RTS
@@ -62,20 +60,16 @@
   PULL tos
   CDR tos, tos ; ignore +/op for now
 
-  PUSH hea ; push future result
-
   PUSH tos ; remember (x y)
   CAR tmp, tos ; compile x
   PUSH tmp
   JSR compile
-  PULL tmp ; discard partial result
 
   PULL tos
   CDR tos, tos
   CAR tmp, tos ; compile y
   PUSH tmp
   JSR compile
-  PULL tmp ; discard partial result
 
   LDA #W_ADD
   LDY #0

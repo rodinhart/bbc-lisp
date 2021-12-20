@@ -46,7 +46,7 @@ INCLUDE "lib.s"
   JMP run
 
 .text
-  EQUB "(+ (+ 2 3) (+ 5 7))", 0
+  EQUB "(+ (+ 3 5) (+ 7 11))", 0
 .code
   EQUB W_PUSH : EQUW text
   EQUB W_READ, W_COMPILE, W_JSR, W_PRN, W_HALT
