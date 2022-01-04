@@ -36,17 +36,34 @@ INCLUDE "lib.s"
   STA hea + 1
 
   ; init env
-  LDA #LO(NIL)
+  LDA #LO(core)
   STA env
-  LDA #HI(NIL)
+  LDA #HI(core)
   STA env + 1
  
   ; main
   ADDR pc, code
   JMP run
 
+.core
+  EQUW core_plus, core2
+.core2
+  EQUW core_plus2, core3
+.core3
+  EQUW core_minus, core4
+.core4
+  EQUW core_minus2, NIL
+.core_plus
+  EQUB "+", 0, 0, 0, T_Sym
+.core_plus2
+  EQUB W_ADD, W_RTS
+.core_minus
+  EQUB "-", 0, 0, 0, T_Sym
+.core_minus2
+  EQUB W_SUB, W_RTS
+
 .text
-  EQUB "(+ (+ 3 5) (+ 7 11))", 0
+  EQUB "(+ (+ 3 5) (- 11 7))", 0
 .code
   EQUB W_PUSH : EQUW text
   EQUB W_READ, W_COMPILE, W_JSR, W_PRN, W_HALT

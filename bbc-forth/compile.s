@@ -56,10 +56,12 @@
   JSR gcApply
   RTS
 
-.wordCompile_cons ; e.g. (+ x y)
+.wordCompile_cons ; e.g. (op x y)
   PULL tos
-  CDR tos, tos ; ignore +/op for now
+  CAR tmp, tos ; push op
+  PUSH tmp
 
+  CDR tos, tos ; (x y)
   PUSH tos ; remember (x y)
   CAR tmp, tos ; compile x
   PUSH tmp
@@ -71,7 +73,9 @@
   PUSH tmp
   JSR compile
 
-  LDA #W_ADD
+  JSR compile ; compile op
+
+  LDA #W_JSR
   LDY #0
   STA (hea), Y
   

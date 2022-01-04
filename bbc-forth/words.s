@@ -28,6 +28,7 @@ W_READ = 23
 W_COMPILE = 24
 W_GET = 25
 W_SET = 26
+W_SUB = 27
 
 .run
   LDY #0
@@ -81,6 +82,7 @@ W_SET = 26
   EQUB LO(wordCompile - 1)
   EQUB LO(wordGet - 1)
   EQUB LO(wordSet - 1)
+  EQUB LO(wordSub - 1)
 .run_jumphigh
   EQUB HI(wordPush - 1)
   EQUB HI(wordAdd - 1)
@@ -109,6 +111,7 @@ W_SET = 26
   EQUB HI(wordCompile - 1)
   EQUB HI(wordGet - 1)
   EQUB HI(wordSet - 1)
+  EQUB HI(wordSub - 1)
   
 .wordPush
   DEX
@@ -603,4 +606,49 @@ W_SET = 26
   INY
   JSR gcApply
   
+  JMP run_next1
+
+.wordSub
+  PULL tos
+
+  LDY #0
+  LDA (tos), Y
+  STA (hea), Y
+  INY
+  LDA (tos), Y
+  STA (hea), Y
+  INY
+  LDA (tos), Y
+  STA (hea), Y
+  INY
+  LDA (tos), Y
+  STA (hea), Y
+  INY
+  LDA (tos), Y
+  STA (hea), Y
+
+  PULL tos
+
+  SEC
+  LDY #0
+  LDA (tos), Y
+  SBC (hea), Y
+  STA (hea), Y
+  INY
+  LDA (tos), Y
+  SBC (hea), Y
+  STA (hea), Y
+  INY
+  LDA (tos), Y
+  SBC (hea), Y
+  STA (hea), Y
+  INY
+  LDA (tos), Y
+  SBC (hea), Y
+  STA (hea), Y
+  PUSH hea
+
+  LDY #5
+  JSR gcApply
+
   JMP run_next1
